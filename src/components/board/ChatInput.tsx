@@ -22,10 +22,10 @@ export default function ChatInput() {
     <div className='w-full max-w-3xl'>
       <form onSubmit={handleSubmit} className='relative'>
         {/* Input Container */}
-        <div className='flex flex-col rounded-[24px] border-2 border-[#C7E7EB] bg-white p-4 shadow-sm transition-all duration-300 ease-in-out'>
+        <div className='flex flex-col rounded-[20px] border border-gray-300 bg-white p-3.5 shadow-sm transition-all duration-300 ease-in-out focus-within:border-[#C7E7EB]'>
           {/* Text Input with Sparkle Icon */}
-          <div className='mb-16 flex items-center gap-2.5'>
-            <IoSparkles className='h-5 w-5 text-gray-400' />
+          <div className='mb-12 flex items-center gap-2'>
+            <IoSparkles className='h-4 w-4 text-gray-400' />
             <input
               type='text'
               value={message}

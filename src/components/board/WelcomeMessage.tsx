@@ -19,7 +19,7 @@ export default function WelcomeMessage({ userName = 'Winter Aconite' }: WelcomeM
   return (
     <div className='flex flex-col items-center text-center'>
       {/* Date */}
-      <p className='mb-1.5 font-urbanist text-[10px] text-gray-500'>{currentDate}</p>
+      <p className='mb-1.5 font-urbanist text-[10px] text-gray-600'>{currentDate}</p>
 
       {/* Greeting */}
       <h1 className='mb-1.5 font-urbanist text-lg font-medium leading-tight text-gray-900'>
