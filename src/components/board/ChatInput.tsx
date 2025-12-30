@@ -22,7 +22,7 @@ export default function ChatInput() {
     <div className='w-full max-w-3xl'>
       <form onSubmit={handleSubmit} className='relative'>
         {/* Input Container */}
-        <div className='flex items-end gap-2 rounded-2xl border border-gray-300 bg-white px-4 py-3 shadow-sm transition-shadow focus-within:shadow-md'>
+        <div className='flex items-end gap-2 rounded-2xl border border-gray-300 bg-white px-4 py-3 shadow-sm transition-all duration-300 ease-in-out focus-within:border-[#C7E7EB] focus-within:shadow-lg focus-within:shadow-[#C7E7EB]/20'>
           {/* Left Actions */}
           <div className='flex items-center gap-1 pb-1'>
             {/* Add Attachment Button */}
