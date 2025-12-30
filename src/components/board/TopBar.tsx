@@ -13,22 +13,22 @@ export default function TopBar() {
       <div className='flex-1' />
 
       {/* Right side - Actions */}
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-1.5'>
         {/* Search Button */}
-        <button className='flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 font-urbanist text-sm text-gray-700 transition-all hover:bg-gray-50'>
-          <BiSearch className='h-4 w-4' />
+        <button className='flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 font-urbanist text-[13px] text-gray-700 transition-all hover:bg-gray-50'>
+          <BiSearch className='h-3.5 w-3.5' />
           <span>Search</span>
         </button>
 
         {/* Personas Button */}
-        <button className='flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 font-urbanist text-sm text-gray-700 transition-all hover:bg-gray-50'>
-          <HiOutlineUserGroup className='h-4 w-4' />
+        <button className='flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 font-urbanist text-[13px] text-gray-700 transition-all hover:bg-gray-50'>
+          <HiOutlineUserGroup className='h-3.5 w-3.5' />
           <span>Personas</span>
         </button>
 
         {/* LLMs Button */}
-        <button className='flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 font-urbanist text-sm text-gray-700 transition-all hover:bg-gray-50'>
-          <RiRobot2Line className='h-4 w-4' />
+        <button className='flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3.5 py-1.5 font-urbanist text-[13px] text-gray-700 transition-all hover:bg-gray-50'>
+          <RiRobot2Line className='h-3.5 w-3.5' />
           <span>LLMs</span>
         </button>
       </div>

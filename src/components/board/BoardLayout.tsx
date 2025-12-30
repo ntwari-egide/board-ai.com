@@ -33,18 +33,18 @@ export default function BoardLayout({
         {/* Content Area */}
         <main className='flex flex-1 flex-col overflow-y-auto'>
           {/* Page Title */}
-          <div className='border-b border-gray-200 bg-white px-6 py-4'>
-            <h2 className='font-urbanist text-base font-medium text-gray-900'>
+          <div className='border-b border-gray-200 bg-white px-6 py-3'>
+            <h2 className='font-urbanist text-sm font-medium text-gray-900'>
               New brainstorming
             </h2>
           </div>
 
           {/* Main Content - Centered */}
-          <div className='flex flex-1 flex-col items-center justify-center px-6 py-12'>
+          <div className='flex flex-1 flex-col items-center justify-center px-6 py-8'>
             {children || (
               <>
                 {/* Welcome Message */}
-                <div className='mb-12'>
+                <div className='mb-6'>
                   <WelcomeMessage userName={userName} />
                 </div>
 
