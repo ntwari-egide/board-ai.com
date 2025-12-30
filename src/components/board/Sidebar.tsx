@@ -12,43 +12,43 @@ interface SidebarProps {
  */
 export default function Sidebar({ userName, userAvatar }: SidebarProps) {
   return (
-    <aside className='flex h-screen w-[148px] flex-col border-r border-gray-200 bg-white'>
+    <aside className='flex h-screen w-[280px] flex-col border-r border-gray-200 bg-white px-6 py-8'>
       {/* Logo Section */}
-      <div className='px-4 py-5'>
-        <div className='flex items-center gap-2'>
-          <div className='flex h-6 w-6 items-center justify-center rounded bg-black'>
-            <span className='font-urbanist text-sm font-bold text-white'>B</span>
+      <div className='mb-8'>
+        <div className='flex items-center gap-3'>
+          <div className='flex h-14 w-14 items-center justify-center rounded-xl bg-black'>
+            <span className='font-urbanist text-2xl font-bold text-[#E8FF2B]'>B</span>
           </div>
-          <span className='font-urbanist text-base font-semibold text-gray-900'>
+          <span className='font-urbanist text-3xl font-bold text-gray-900'>
             Board
           </span>
         </div>
       </div>
 
       {/* Search Input */}
-      <div className='px-3'>
+      <div className='mb-6'>
         <div className='relative'>
-          <BiSearch className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400' />
+          <BiSearch className='absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500' />
           <input
             type='text'
             placeholder='Search personas or chat...'
-            className='w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 font-urbanist text-xs text-gray-900 placeholder-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0'
+            className='w-full rounded-[20px] border-none bg-gray-100 py-4 pl-12 pr-4 font-urbanist text-base text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0'
           />
         </div>
       </div>
 
       {/* New Chat Button */}
-      <div className='mt-4 px-3'>
-        <button className='flex w-full items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-urbanist text-sm text-gray-700 transition-colors hover:bg-gray-50'>
-          <HiOutlineChatBubbleLeftRight className='h-4 w-4' />
+      <div>
+        <button className='flex w-full items-center gap-3 py-3 font-urbanist text-xl font-medium text-gray-700 transition-colors hover:text-gray-900'>
+          <HiOutlineChatBubbleLeftRight className='h-7 w-7' />
           <span>New Chat</span>
         </button>
       </div>
 
       {/* User Profile - Bottom */}
-      <div className='mt-auto p-4'>
-        <div className='flex items-center gap-2'>
-          <div className='h-9 w-9 overflow-hidden rounded-full bg-gray-200'>
+      <div className='mt-auto'>
+        <div className='flex items-center gap-3'>
+          <div className='h-10 w-10 overflow-hidden rounded-full bg-gray-200'>
             {userAvatar ? (
               <img
                 src={userAvatar}
@@ -56,15 +56,15 @@ export default function Sidebar({ userName, userAvatar }: SidebarProps) {
                 className='h-full w-full object-cover'
               />
             ) : (
-              <div className='flex h-full w-full items-center justify-center bg-gray-300 font-urbanist text-sm font-semibold text-gray-600'>
+              <div className='flex h-full w-full items-center justify-center bg-gray-300 font-urbanist text-base font-semibold text-gray-600'>
                 {userName?.charAt(0) || 'U'}
               </div>
             )}
           </div>
           <button className='text-gray-400 hover:text-gray-600'>
             <svg
-              width='16'
-              height='16'
+              width='20'
+              height='20'
               viewBox='0 0 16 16'
               fill='none'
               xmlns='http://www.w3.org/2000/svg'
