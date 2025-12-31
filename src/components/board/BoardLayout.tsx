@@ -40,7 +40,7 @@ export default function BoardLayout({
           </div>
 
           {/* Main Content - Centered */}
-          <div className='flex flex-1 flex-col items-center justify-center px-6 py-8'>
+          <div className='flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-8'>
             {children || (
               <>
                 {/* Welcome Message */}
