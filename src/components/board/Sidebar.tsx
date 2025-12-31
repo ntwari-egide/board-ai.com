@@ -2,11 +2,19 @@ import React from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { HiOutlineChatBubbleLeftRight, HiOutlineUser } from 'react-icons/hi2';
 import { LuLogOut } from 'react-icons/lu';
+import { IoTimeOutline } from 'react-icons/io5';
 
 interface SidebarProps {
   userName?: string;
   userAvatar?: string;
 }
+
+// Dummy conversation history
+const conversationHistory = [
+  { id: 1, title: "I've scanned...", time: 'Today' },
+  { id: 2, title: 'Visualization market...', time: 'Yesterday' },
+  { id: 3, title: 'Scanned files...', time: 'Dec 28' },
+];
 
 /**
  * Sidebar component with logo, search, and new chat button
@@ -39,11 +47,31 @@ export default function Sidebar({ userName, userAvatar }: SidebarProps) {
       </div>
 
       {/* New Chat Button */}
-      <div>
+      <div className='mb-4'>
         <button className='flex w-full items-center gap-2 py-1.5 font-urbanist text-sm font-medium text-gray-700 transition-colors hover:text-gray-900'>
           <HiOutlineChatBubbleLeftRight className='h-4 w-4' />
           <span>New Chat</span>
         </button>
+      </div>
+
+      {/* History Section */}
+      <div className='mb-4 flex-1 overflow-y-auto'>
+        <div className='mb-2 flex items-center gap-1.5 px-1'>
+          <IoTimeOutline className='h-3.5 w-3.5 text-gray-500' />
+          <span className='font-urbanist text-xs font-medium text-gray-600'>
+            History
+          </span>
+        </div>
+        <div className='space-y-1'>
+          {conversationHistory.map((conv) => (
+            <button
+              key={conv.id}
+              className='w-full rounded-lg px-2 py-1.5 text-left font-urbanist text-xs text-gray-600 transition-colors hover:bg-gray-100'
+            >
+              <div className='truncate'>{conv.title}</div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* User Profile - Bottom */}

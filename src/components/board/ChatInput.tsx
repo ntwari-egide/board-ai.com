@@ -7,13 +7,18 @@ import { IoArrowUp, IoSparkles, IoClose } from 'react-icons/io5';
 import { SiOpenai } from 'react-icons/si';
 import { AiOutlineFile } from 'react-icons/ai';
 
+interface ChatInputProps {
+  onSendMessage?: (message: string, files: File[]) => void;
+  isCompact?: boolean;
+}
+
 /**
  * Chat input component with file upload and animation features
  */
-export default function ChatInput() {
+export default function ChatInput({ onSendMessage, isCompact = false }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(isCompact);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,15 +83,16 @@ export default function ChatInput() {
     // Trigger animation - move input to bottom
     setIsSubmitted(true);
 
-    // TODO: Handle message and file submission
-    console.log('Message:', message);
-    console.log('Files:', files);
+    // Call parent callback if provided
+    if (onSendMessage) {
+      onSendMessage(message, files);
+    }
 
-    // Reset after animation (optional - can be removed if you want to keep it at bottom)
+    // Reset input fields but keep submitted state
     setTimeout(() => {
       setMessage('');
       setFiles([]);
-      // setIsSubmitted(false); // Uncomment to return to center
+      // Keep isSubmitted as true to maintain the compact layout
     }, 500);
   };
 
@@ -94,12 +100,11 @@ export default function ChatInput() {
     <LazyMotion features={domAnimation}>
       <m.div
         layout
-        className='w-full max-w-3xl'
+        className='w-full'
+        style={{ position: 'relative' }}
         initial={false}
         animate={{
-          y: isSubmitted ? 200 : 0,
-          opacity: isSubmitted ? 0.95 : 1,
-          scale: isSubmitted ? 0.95 : 1,
+          maxWidth: isSubmitted ? '900px' : '800px',
         }}
         transition={{
           duration: 0.4,
@@ -147,8 +152,8 @@ export default function ChatInput() {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           animate={{
-            paddingTop: isSubmitted ? '0.5rem' : '0.875rem',
-            paddingBottom: isSubmitted ? '0.5rem' : '0.875rem',
+            paddingTop: isSubmitted ? '0.375rem' : '0.875rem',
+            paddingBottom: isSubmitted ? '0.375rem' : '0.875rem',
           }}
           transition={{
             duration: 0.4,
@@ -164,7 +169,7 @@ export default function ChatInput() {
           <m.div
             layout
             animate={{
-              marginBottom: isSubmitted ? '1.5rem' : '3rem',
+              marginBottom: isSubmitted ? '0.5rem' : '3rem',
             }}
             transition={{
               duration: 0.4,

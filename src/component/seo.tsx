@@ -11,12 +11,12 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 
 const defaultMeta = {
-  title: 'Plaxis AI | AI powered job search engine',
-  siteName: 'Plaxis AI',
+  title: 'Board AI | AI-powered Collaborative Brainstorming',
+  siteName: 'Board AI',
   description:
-    'Plaxis AI is an AI powered job search engine that helps you find the best jobs in any industry. We use machine learning to match you with the best jobs based on your skills and experience.',
+    'Board AI is a collaborative AI brainstorming platform with specialized autonomous agents for modern product teams. Stress-test product ideas with Marketing, PM, Developer, and QA personas.',
   /** Without additional '/' on the end, e.g. https://theodorusclarence.com */
-  url: 'https://plaxisai.com',
+  url: 'https://boardai.com',
   type: 'website',
   robots: 'follow, index',
   /**
@@ -52,12 +52,12 @@ export default function Seo(props: SeoProps) {
       {/* Description */}
       <meta
         name='description'
-        content='Plaxis AI is an AI powered job search engine that helps you find the best jobs in any industry. We use machine learning to match you with the best jobs based on your skills and experience.'
+        content='Board AI is a collaborative AI brainstorming platform with specialized autonomous agents for modern product teams. Stress-test product ideas with Marketing, PM, Developer, and QA personas.'
       />
       {/* Keywords */}
       <meta
         name='keywords'
-        content='Plaxis AI, job search engine, AI powered job search engine, tech jobs, machine learning, job matching, job search, job search platform, job search website, job search app, job search tool, job search service, job search software, job search technology, job search company, job search site, job search engine website, job search engine app, job search engine tool, job search engine service, job search engine software, job search engine technology, job search engine company, job search engine site, job search engine platform, job search engine website, job search engine app, job search engine tool, job search engine service, job search engine software, job search engine technology, job search engine company, job search engine site, job search engine platform, job search engine website, job search engine app, job search engine tool, job search engine service, job search engine software, job search engine technology, job search engine company, job search engine site, job search engine platform'
+        content='Board AI, AI brainstorming, collaborative AI, product teams, autonomous agents, product development, team collaboration, AI personas, marketing AI, PM AI, developer AI, QA AI, product ideation, consensus-driven strategy'
       />
       {/* Author */}
       <meta name='author' content='Egide Ntwari' />

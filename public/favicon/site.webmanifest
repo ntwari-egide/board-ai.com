@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "Board AI",
+  "short_name": "Board",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
