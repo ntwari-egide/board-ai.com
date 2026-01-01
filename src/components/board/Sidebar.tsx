@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { HiOutlineChatBubbleLeftRight, HiOutlineUser } from 'react-icons/hi2';
 import { LuLogOut } from 'react-icons/lu';
@@ -47,21 +47,28 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
     updatedAt: new Date().toISOString(),
   }));
 
+  const loadConversations = useCallback(() => {
+    const allConversations = getAllConversations();
+    setConversations(allConversations);
+  }, []);
+
   useEffect(() => {
-    // Load personas from backend
     if (backendPersonas.length === 0) {
-      dispatch(fetchPersonas());
+      dispatch(fetchPersonas()).catch(() => {
+        // Use dummy personas as fallback
+      });
     }
-    
-    // Load conversations from backend if authenticated
-    if (isAuthenticated) {
-      dispatch(fetchConversations({ limit: 50 }));
-    } else {
-      // Fallback to localStorage
-      loadConversations();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, dispatch, currentConversationId]);
+
+    const fetchOrFallback = async () => {
+      try {
+        await dispatch(fetchConversations({ limit: 50 })).unwrap();
+      } catch {
+        loadConversations();
+      }
+    };
+
+    fetchOrFallback();
+  }, [dispatch, backendPersonas.length, isAuthenticated, currentConversationId, loadConversations]);
 
   // Convert backend conversations to display format
   useEffect(() => {
@@ -77,11 +84,6 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
       setConversations(converted);
     }
   }, [backendConversations]);
-
-  const loadConversations = () => {
-    const allConversations = getAllConversations();
-    setConversations(allConversations);
-  };
 
   const handleConversationClick = (conversationId: string) => {
     const conversation = backendConversations?.find((c: ApiConversation) => c.id === conversationId);
@@ -103,7 +105,8 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
 
   const handleLogout = async () => {
     await dispatch(logout());
-    router.push('/auth/login');
+    // Stay on current page - no redirect needed
+    window.location.reload();
   };
 
   const handlePersonaToggle = (personaId: string) => {
@@ -261,13 +264,12 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
             </button>
           </div>
         ) : (
-          <button 
-            onClick={() => router.push('/auth/login')}
-            className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200'
+          <div 
+            className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700'
           >
             <HiOutlineUser className='h-3.5 w-3.5' />
-            <span>Sign In</span>
-          </button>
+            <span>Guest Mode</span>
+          </div>
         )}
       </div>
     </aside>

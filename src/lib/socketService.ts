@@ -7,23 +7,27 @@ import {
   StatusChangeEvent,
 } from '@/types/api';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:8080';
+const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
+const SOCKET_PATH = process.env.NEXT_PUBLIC_WS_PATH || '/socket.io';
 
 class SocketService {
   private socket: Socket | null = null;
   private isConnected = false;
 
-  connect(): Socket {
-    if (this.socket && this.isConnected) {
+  connect(conversationId: string): Socket {
+    // Always connect per-conversation namespace as per backend spec
+    const namespace = `/conversations/${conversationId}`;
+
+    if (this.socket && this.isConnected && this.socket.nsp === namespace) {
       return this.socket;
     }
 
     const token = this.getToken();
-    
-    this.socket = io(`${SOCKET_URL}/board`, {
-      extraHeaders: {
-        Authorization: token ? `Bearer ${token}` : '',
+    this.socket = io(`${SOCKET_URL}${namespace}`, {
+      auth: {
+        token: token || '',
       },
+      path: SOCKET_PATH,
       transports: ['websocket', 'polling'],
     });
 
@@ -38,7 +42,7 @@ class SocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.warn('WebSocket connection error:', error?.message || error);
     });
 
     return this.socket;
@@ -52,24 +56,53 @@ class SocketService {
     }
   }
 
-  joinConversation(conversationId: string): void {
+  // Join/leave are not needed when using per-conversation namespace; kept for compatibility
+  joinConversation(_conversationId: string): void {
+    /* no-op */
+  }
+
+  leaveConversation(_conversationId: string): void {
+    /* no-op */
+  }
+
+  // Match backend.md WebSocket events
+  onAgentStream(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.emit('join_conversation', { conversationId });
+      this.socket.on('AGENT_STREAM', callback);
     }
   }
 
-  leaveConversation(conversationId: string): void {
+  onAgentMessage(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.emit('leave_conversation', { conversationId });
+      this.socket.on('AGENT_MESSAGE', callback);
     }
   }
 
-  onAgentTyping(callback: (data: AgentTypingEvent) => void): void {
+  onAgentTyping(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('agent_typing', callback);
+      this.socket.on('AGENT_TYPING', callback);
     }
   }
 
+  onMetricUpdate(callback: (data: any) => void): void {
+    if (this.socket) {
+      this.socket.on('METRIC_UPDATE', callback);
+    }
+  }
+
+  onSessionComplete(callback: (data: any) => void): void {
+    if (this.socket) {
+      this.socket.on('SESSION_COMPLETE', callback);
+    }
+  }
+
+  onError(callback: (error: any) => void): void {
+    if (this.socket) {
+      this.socket.on('ERROR', callback);
+    }
+  }
+
+  // Legacy event handlers for backward compatibility
   onAgentResponse(callback: (data: AgentResponseEvent) => void): void {
     if (this.socket) {
       this.socket.on('agent_response', callback);

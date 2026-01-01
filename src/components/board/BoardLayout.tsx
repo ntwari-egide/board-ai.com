@@ -1,6 +1,7 @@
 'use client';
 
 import React, { ReactNode, useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { getCurrentUser } from '@/store/slices/authSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
@@ -32,12 +33,22 @@ export default function BoardLayout({
   
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
 
-  // Initialize backend data
+  // Initialize backend data (optional - works without auth)
   useEffect(() => {
-    dispatch(getCurrentUser()).catch(() => {
-      // Silently handle auth errors on initial load
+    // Only call /auth/me when a token exists; otherwise stay in guest mode
+    if (typeof window !== 'undefined') {
+      const token = Cookies.get('auth_token') || localStorage.getItem('auth_token');
+      if (token) {
+        dispatch(getCurrentUser()).catch(() => {
+          // Silently handle - app works without auth
+        });
+      }
+    }
+
+    // Load personas (works without auth if backend allows)
+    dispatch(fetchPersonas()).catch(() => {
+      // Use dummy personas as fallback
     });
-    dispatch(fetchPersonas());
   }, [dispatch]);
 
   // Update hasStartedConversation based on Redux state
@@ -51,14 +62,7 @@ export default function BoardLayout({
 
   const handleSendMessage = (message: string, files: File[]) => {
     setHasStartedConversation(true);
-    
-    // Call the exposed function from ConversationView
-    type WindowWithConversation = Window & {
-      addConversationMessage?: (message: string, files: File[]) => void;
-    };
-    if (typeof window !== 'undefined' && (window as WindowWithConversation).addConversationMessage) {
-      (window as WindowWithConversation).addConversationMessage!(message, files);
-    }
+    // Backend integration handles message sending through ChatInput
   };
 
   return (

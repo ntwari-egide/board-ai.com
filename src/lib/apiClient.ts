@@ -33,11 +33,9 @@ class ApiClient {
       (response) => response,
       (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Token expired or invalid - clear token and redirect to login
+          // Token expired or invalid - clear token but don't redirect (guest mode allowed)
           this.clearToken();
-          if (typeof window !== 'undefined') {
-            window.location.href = '/auth/login';
-          }
+          console.warn('Authentication expired - working in guest mode');
         }
         return Promise.reject(error);
       }

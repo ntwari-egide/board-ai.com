@@ -298,12 +298,16 @@ const conversationSlice = createSlice({
         state.processingMessage = false;
         // Agent responses are added via WebSocket in real-time
         // But we can add them here as a fallback
-        action.payload.data.forEach(message => {
-          const exists = state.messages.some(m => m.id === message.id);
-          if (!exists) {
-            state.messages.push(message);
+        const incoming = action.payload.data;
+        if (Array.isArray(incoming)) {
+          state.messages = incoming;
+        } else if (incoming) {
+          // Defensive: only push when state.messages is an array
+          if (!Array.isArray(state.messages)) {
+            state.messages = [];
           }
-        });
+          state.messages.push(incoming as Message);
+        }
       })
       .addCase(processMessage.rejected, (state, action) => {
         state.processingMessage = false;

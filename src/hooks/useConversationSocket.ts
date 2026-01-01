@@ -19,48 +19,68 @@ export const useConversationSocket = (conversationId: string | null) => {
   useEffect(() => {
     if (!conversationId) return;
 
-    // Connect to WebSocket
-    const socket = socketService.connect();
+    // Connect directly to per-conversation namespace (/conversations/:id)
+    socketService.connect(conversationId);
 
-    // Join conversation room
-    socketService.joinConversation(conversationId);
-
-    // Listen for agent typing
+    // Listen for agent typing (backend.md format)
     socketService.onAgentTyping((data) => {
-      if (data.conversationId === conversationId) {
+      if (data.isTyping) {
         dispatch(addTypingAgent({
-          agentType: data.agentType,
-          agentName: data.agentName,
+          agentType: data.personaId,
+          agentName: data.message || data.personaId,
+        }));
+      } else {
+        dispatch(removeTypingAgent(data.personaId));
+      }
+    });
+
+    // Listen for complete agent messages (backend.md format)
+    socketService.onAgentMessage((data) => {
+      // Remove typing indicator
+      dispatch(removeTypingAgent(data.personaId));
+      
+      // Add the complete message
+      const message: Message = {
+        id: data.id,
+        conversation: data.conversationId,
+        role: 'AGENT',
+        content: data.content,
+        agentType: data.personaId,
+        createdAt: data.createdAt,
+        updatedAt: data.createdAt,
+      };
+      dispatch(addMessage(message));
+    });
+
+    // Listen for streaming chunks (optional - for real-time display)
+    socketService.onAgentStream((data) => {
+      // Handle streaming chunks if needed
+      // Can be used to show partial messages as they're generated
+      if (!data.isComplete) {
+        dispatch(addTypingAgent({
+          agentType: data.personaId,
+          agentName: data.chunk,
         }));
       }
     });
 
-    // Listen for agent responses
-    socketService.onAgentResponse((data) => {
+    // Listen for session complete
+    socketService.onSessionComplete((data) => {
       if (data.conversationId === conversationId) {
-        // Remove typing indicator for this agent
-        dispatch(removeTypingAgent(data.message.agentType || ''));
-        
-        // Add the message
-        dispatch(addMessage(data.message));
+        console.log('Session completed:', data);
+        // Update conversation with final results
+        if (currentConversation) {
+          dispatch(setCurrentConversation({
+            ...currentConversation,
+            status: 'COMPLETED',
+          }));
+        }
       }
     });
 
-    // Listen for round completed
-    socketService.onRoundCompleted((data) => {
-      if (data.conversationId === conversationId) {
-        console.log(`Round ${data.roundNumber} completed`);
-      }
-    });
-
-    // Listen for status changes
-    socketService.onStatusChange((data) => {
-      if (data.conversationId === conversationId && currentConversation) {
-        dispatch(setCurrentConversation({
-          ...currentConversation,
-          status: data.status,
-        }));
-      }
+    // Listen for errors
+    socketService.onError((error) => {
+      console.error('WebSocket error:', error);
     });
 
     // Cleanup on unmount
@@ -68,10 +88,11 @@ export const useConversationSocket = (conversationId: string | null) => {
       if (conversationId) {
         socketService.leaveConversation(conversationId);
       }
-      socketService.off('agent_typing');
-      socketService.off('agent_response');
-      socketService.off('round_completed');
-      socketService.off('status_change');
+      socketService.off('AGENT_TYPING');
+      socketService.off('AGENT_MESSAGE');
+      socketService.off('AGENT_STREAM');
+      socketService.off('SESSION_COMPLETE');
+      socketService.off('ERROR');
     };
   }, [conversationId, dispatch, currentConversation]);
 
