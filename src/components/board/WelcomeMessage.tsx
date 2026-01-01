@@ -19,16 +19,16 @@ export default function WelcomeMessage({ userName = 'Winter Aconite' }: WelcomeM
   return (
     <div className='flex flex-col items-center text-center'>
       {/* Date */}
-      <p className='mb-1.5 font-urbanist text-[10px] text-gray-600'>{currentDate}</p>
+      <p className='mb-1 font-urbanist text-[10px] text-gray-600 md:mb-1.5'>{currentDate}</p>
 
       {/* Greeting */}
-      <h1 className='mb-1.5 font-urbanist text-lg font-medium leading-tight text-gray-900'>
-        Hi {userName}! What do you have in mind today?
+      <h1 className='mb-1 px-4 font-urbanist text-base font-medium leading-tight text-gray-900 md:mb-1.5 md:text-lg'>
+        Hey, how can I help you?
       </h1>
 
       {/* Description */}
-      <p className='max-w-xl font-urbanist text-[13px] leading-snug text-gray-500'>
-        I can help you with a consensus-driven strategy for modern product teams. A Collaborative AI Boardroom. Stress-testing product ideas with specialized autonomous agents.
+      <p className='max-w-xl px-6 font-urbanist text-xs leading-snug text-gray-500 md:text-[13px]'>
+        Start a new project or ask for help.
       </p>
     </div>
   );

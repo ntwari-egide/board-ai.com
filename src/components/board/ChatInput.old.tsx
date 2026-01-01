@@ -7,9 +7,6 @@ import { IoArrowUp, IoSparkles, IoClose, IoMicOutline } from 'react-icons/io5';
 import { SiOpenai } from 'react-icons/si';
 import { AiOutlineFile } from 'react-icons/ai';
 import { HiChevronDown } from 'react-icons/hi2';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { processMessage, createConversation } from '@/store/slices/conversationSlice';
-import { message as antMessage } from 'antd';
 
 interface ChatInputProps {
   onSendMessage?: (message: string, files: File[]) => void;
@@ -20,10 +17,6 @@ interface ChatInputProps {
  * Chat input component with file upload and animation features
  */
 export default function ChatInput({ onSendMessage, isCompact = false }: ChatInputProps) {
-  const dispatch = useAppDispatch();
-  const { currentConversation } = useAppSelector((state) => state.conversation);
-  const { selectedPersonas } = useAppSelector((state) => state.persona);
-  
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(isCompact);
@@ -84,56 +77,24 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() && files.length === 0) return;
-
-    // Check if personas are selected for new conversations
-    if (!currentConversation && selectedPersonas.length === 0) {
-      antMessage.warning('Please select at least one AI persona from the sidebar');
-      return;
-    }
 
     // Trigger animation - move input to bottom
     setIsSubmitted(true);
 
-    // Call parent callback if provided (for UI updates)
+    // Call parent callback if provided
     if (onSendMessage) {
       onSendMessage(message, files);
     }
 
-    try {
-      let conversationId = currentConversation?.id;
-
-      // Create new conversation if needed
-      if (!conversationId) {
-        const conversation = await dispatch(
-          createConversation({
-            title: message.slice(0, 50) || 'New Conversation',
-            activePersonas: selectedPersonas,
-            maxRounds: 3,
-          })
-        ).unwrap();
-        conversationId = conversation.id;
-      }
-
-      // Process the message (triggers all AI personas)
-      await dispatch(
-        processMessage({
-          conversationId,
-          message,
-        })
-      ).unwrap();
-
-      // Reset input fields but keep submitted state
-      setTimeout(() => {
-        setMessage('');
-        setFiles([]);
-      }, 500);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
-      antMessage.error(errorMessage);
-    }
+    // Reset input fields but keep submitted state
+    setTimeout(() => {
+      setMessage('');
+      setFiles([]);
+      // Keep isSubmitted as true to maintain the compact layout
+    }, 500);
   };
 
   return (

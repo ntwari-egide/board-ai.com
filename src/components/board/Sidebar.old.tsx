@@ -5,13 +5,6 @@ import { LuLogOut } from 'react-icons/lu';
 import { IoTimeOutline } from 'react-icons/io5';
 import { getAllConversations, setCurrentConversationId as setStorageConversationId } from '@/lib/conversationStorage';
 import { Conversation } from '@/types/chat';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchConversations, setCurrentConversation, clearCurrentConversation } from '@/store/slices/conversationSlice';
-import { fetchPersonas, togglePersona } from '@/store/slices/personaSlice';
-import { logout } from '@/store/slices/authSlice';
-import { useRouter } from 'next/router';
-import { dummyPersonas } from '@/data/dummyData';
-import { Conversation as ApiConversation, Persona as ApiPersona } from '@/types/api';
 
 interface SidebarProps {
   userName?: string;
@@ -24,59 +17,12 @@ interface SidebarProps {
  * Sidebar component with logo, search, and new chat button
  */
 export default function Sidebar({ userName, userAvatar, onNewChat, currentConversationId }: SidebarProps) {
-  const dispatch = useAppDispatch();
-  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  
-  // Redux state
-  const { conversations: backendConversations } = useAppSelector((state) => state.conversation);
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  const { personas: backendPersonas, selectedPersonas } = useAppSelector((state) => state.persona);
-
-  // Use backend personas if available, otherwise fallback to dummy data
-  const displayPersonas = backendPersonas.length > 0 ? backendPersonas : dummyPersonas.map(p => ({
-    id: p.id,
-    name: p.name,
-    description: p.role,
-    systemPrompt: '',
-    color: p.color,
-    icon: p.avatar,
-    capabilities: [],
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }));
 
   useEffect(() => {
-    // Load personas from backend
-    if (backendPersonas.length === 0) {
-      dispatch(fetchPersonas());
-    }
-    
-    // Load conversations from backend if authenticated
-    if (isAuthenticated) {
-      dispatch(fetchConversations({ limit: 50 }));
-    } else {
-      // Fallback to localStorage
-      loadConversations();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, dispatch, currentConversationId]);
-
-  // Convert backend conversations to display format
-  useEffect(() => {
-    if (backendConversations && backendConversations.length > 0) {
-      const converted: Conversation[] = backendConversations.map((conv: ApiConversation) => ({
-        id: conv.id,
-        title: conv.title,
-        messages: [],
-        personas: conv.activePersonas || [],
-        createdAt: new Date(conv.createdAt),
-        updatedAt: new Date(conv.updatedAt),
-      }));
-      setConversations(converted);
-    }
-  }, [backendConversations]);
+    // Load conversations on mount
+    loadConversations();
+  }, [currentConversationId]);
 
   const loadConversations = () => {
     const allConversations = getAllConversations();
@@ -84,30 +30,9 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
   };
 
   const handleConversationClick = (conversationId: string) => {
-    const conversation = backendConversations?.find((c: ApiConversation) => c.id === conversationId);
-    if (conversation) {
-      dispatch(setCurrentConversation(conversation));
-    } else {
-      // Fallback to localStorage behavior
-      setStorageConversationId(conversationId);
-      window.location.reload();
-    }
-  };
-
-  const handleNewChat = () => {
-    dispatch(clearCurrentConversation());
-    if (onNewChat) {
-      onNewChat();
-    }
-  };
-
-  const handleLogout = async () => {
-    await dispatch(logout());
-    router.push('/auth/login');
-  };
-
-  const handlePersonaToggle = (personaId: string) => {
-    dispatch(togglePersona(personaId));
+    setStorageConversationId(conversationId);
+    // Reload the page to load the conversation
+    window.location.reload();
   };
 
   const formatDate = (date: Date) => {
@@ -153,55 +78,12 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
       {/* New Chat Button */}
       <div className='mb-4'>
         <button 
-          onClick={handleNewChat}
+          onClick={onNewChat}
           className='flex w-full items-center gap-2 py-1.5 font-urbanist text-sm font-medium text-gray-700 transition-colors hover:text-gray-900'
         >
           <HiOutlineChatBubbleLeftRight className='h-4 w-4' />
           <span>New Chat</span>
         </button>
-      </div>
-
-      {/* Persona Selection */}
-      <div className='mb-4'>
-        <div className='mb-2 px-1'>
-          <span className='font-urbanist text-xs font-medium text-gray-600'>
-            AI Personas
-          </span>
-        </div>
-        <div className='space-y-1'>
-          {displayPersonas.slice(0, 4).map((persona: ApiPersona) => {
-            const isSelected = selectedPersonas.includes(persona.id);
-            const dummyPersona = dummyPersonas.find(p => p.id === persona.id || p.name === persona.name);
-            
-            return (
-              <button
-                key={persona.id}
-                onClick={() => handlePersonaToggle(persona.id)}
-                className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 font-urbanist text-xs transition-colors ${
-                  isSelected
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <div
-                  className='flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold'
-                  style={{
-                    backgroundColor: isSelected ? (dummyPersona?.color || persona.color || '#888') : 'transparent',
-                    color: isSelected ? 'white' : (dummyPersona?.color || persona.color || '#888'),
-                  }}
-                >
-                  {dummyPersona?.avatar || persona.icon || persona.name.charAt(0)}
-                </div>
-                <span className='truncate'>{persona.name}</span>
-              </button>
-            );
-          })}
-        </div>
-        {selectedPersonas.length > 0 && (
-          <div className='mt-2 px-2 text-[10px] text-gray-500'>
-            {selectedPersonas.length} persona{selectedPersonas.length > 1 ? 's' : ''} selected
-          </div>
-        )}
       </div>
 
       {/* History Section */}
@@ -237,13 +119,13 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
 
       {/* User Profile - Bottom */}
       <div className='mt-auto'>
-        {userAvatar || userName || user ? (
+        {userAvatar || userName ? (
           <div className='flex items-center gap-2'>
             <div className='h-8 w-8 overflow-hidden rounded-full border-2 border-[#E8FF2B] bg-gradient-to-br from-gray-100 to-gray-200'>
               {userAvatar ? (
                 <img
                   src={userAvatar}
-                  alt={userName || user?.firstName || 'User'}
+                  alt={userName || 'User'}
                   className='h-full w-full object-cover'
                 />
               ) : (
@@ -253,7 +135,6 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
               )}
             </div>
             <button
-              onClick={handleLogout}
               className='text-gray-600 transition-colors hover:text-gray-900'
               aria-label='Sign out'
             >
@@ -261,10 +142,7 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
             </button>
           </div>
         ) : (
-          <button 
-            onClick={() => router.push('/auth/login')}
-            className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200'
-          >
+          <button className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200'>
             <HiOutlineUser className='h-3.5 w-3.5' />
             <span>Sign In</span>
           </button>

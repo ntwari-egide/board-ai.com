@@ -5,14 +5,15 @@ import {
   GoogleOAuthProvider,
 } from '@react-oauth/google';
 import { Button, Input, message } from 'antd';
-import axios, { AxiosError } from 'axios';
-import Cookies from 'js-cookie';
+import axios from 'axios';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiArrowRightLine } from 'react-icons/ri';
 
 import api from '@/global/axios-config';
 import { encryptData } from '@/utils/encryptions';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { register, login, clearError } from '@/store/slices/authSlice';
 
 interface LoginResponseType {
   // Define this interface based on the response structure from your backend
@@ -26,16 +27,34 @@ interface LoginResponseType {
 }
 
 const SignupComponent = () => {
+  // Redux
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   // states
-  const [email, setEmail] = useState<string>();
-  const [password, setPassword] = useState<string>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [passwordConfirmation, setConfirmPassword] = useState<string>();
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [passwordConfirmation, setConfirmPassword] = useState<string>('');
   const [usingEmail, setIsUsingEmail] = useState<boolean>(false);
-  const [firstName, setFirstName] = useState<string>();
-  const [lastName, setLastName] = useState<string>();
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
 
   const router = useRouter(); // Initialize navigate for redirection
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
+  // Show error messages
+  useEffect(() => {
+    if (error) {
+      message.error(typeof error === 'string' ? error : 'Registration failed');
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   // Replace with your Google Client ID
   const GOOGLE_CLIENT_ID =
@@ -107,75 +126,36 @@ const SignupComponent = () => {
   };
 
   const handleEmailSignup = async () => {
-    setIsLoading(true);
-
-    if (!firstName || !lastName) {
-      message.error(' Please fill in form!');
-      setIsLoading(false);
-
+    if (!firstName || !lastName || !email || !password) {
+      message.error('Please fill in all fields!');
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // Send the authorization code to your backend
-      const response = await api.post(
-        '/auth/email/register',
-        {
-          email,
-          password,
-          firstName,
-          lastName,
-        },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      console.log('res: ', response.data);
-
-      // save the user response in cookies.
-      Cookies.set(
-        'user-credentials',
-        await encryptData(JSON.stringify(response.data)),
-        { expires: 7 }
-      );
-
-      // setting the user credentials to empty
+      // Register user
+      await dispatch(register({
+        email,
+        password,
+        firstName,
+        lastName,
+      })).unwrap();
+      
+      // After successful registration, automatically login
+      await dispatch(login({ email, password })).unwrap();
+      
+      message.success('Registration successful!');
+      
+      // Clear form
       setEmail('');
       setPassword('');
       setLastName('');
       setFirstName('');
-
-      // route back to home
-      router.push('/');
-
-      // Optionally, handle successful login
-    } catch (error) {
-      const axiosError = error as AxiosError;
-
-      if (axiosError.response) {
-        if (axiosError.response.status === 422) {
-          // Redirect to signup if user not registered
-          message.info('User already found. Redirecting to login...', 5);
-          router.push('/login'); // Redirects to the signup page
-
-          //setting login credentials to empty
-          setEmail('');
-          setPassword('');
-        } else {
-          message.error(
-            `Error ${axiosError.response.status}: ${
-              axiosError.response.data ||
-              'Error logging in with your email. Try again!'
-            }`
-          );
-        }
-      } else {
-        message.error('Network error. Please check your connection.');
-        setPassword('');
-      }
-    } finally {
-      setIsLoading(false);
+      setConfirmPassword('');
+      // Router will handle redirect via useEffect
+    } catch (err: any) {
+      // Error handling is done in useEffect
+      setPassword('');
+      setConfirmPassword('');
     }
   };
 

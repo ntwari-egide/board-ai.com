@@ -5,14 +5,15 @@ import {
   GoogleOAuthProvider,
 } from '@react-oauth/google';
 import { Button, Input, message } from 'antd';
-import axios, { AxiosError } from 'axios';
-import Cookies from 'js-cookie';
+import axios from 'axios';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiArrowRightLine } from 'react-icons/ri';
 
 import api from '@/global/axios-config';
 import { encryptData } from '@/utils/encryptions';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { login, clearError } from '@/store/slices/authSlice';
 
 interface LoginResponseType {
   // Define this interface based on the response structure from your backend
@@ -26,12 +27,29 @@ interface LoginResponseType {
 }
 
 const LoginComponent = () => {
+  // Redux
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   // states
-  const [email, setEmail] = useState<string>();
-  const [password, setPassword] = useState<string>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
   const router = useRouter(); // Initialize navigate for redirection
+
+  // Redirect if already authenticated
+  useEffect(() => {    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
+  // Show error messages
+  useEffect(() => {
+    if (error) {
+      message.error(typeof error === 'string' ? error : 'Login failed');
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   // Replace with your Google Client ID
   const GOOGLE_CLIENT_ID =
@@ -104,75 +122,23 @@ const LoginComponent = () => {
 
   const handleEmailLogin = async () => {
     if (!email || !password) {
-      message.error(' Please fill in credentials');
+      message.error('Please fill in credentials');
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // Send the authorization code to your backend
-      const response = await api.post(
-        '/auth/email/login',
-        {
-          email,
-          password,
-        },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      // save the user response in cookies.
-      Cookies.set(
-        'user-credentials',
-        await encryptData(JSON.stringify(response.data)),
-        { expires: 7 }
-      );
-
-      // setting the user credentials to empty
-      setEmail('');
-      setPassword('');
-
-      // route back to home
-      router.push('/');
-
-      // Optionally, handle successful login
-    } catch (error) {
-      const axiosError = error as AxiosError;
-
-      if (axiosError.response) {
-        if (axiosError.response.status === 422) {
-          const errorMessage = (axiosError.response.data as { errors?: any })
-            .errors;
-
-          if (errorMessage?.email === 'Incorrect Credentials') {
-            // Redirect to signup if user not registered
-            message.error(
-              'User with that email not found. Redirecting to signup.'
-            );
-            router.push('/signup'); // Redirects to the signup page
-          } else {
-            message.error('Invalid credentails.');
-          }
-
-          // Setting login credentials to empty
-          setEmail('');
-          setPassword('');
-        } else {
-          // Handling other error statuses
-          message.error(
-            `Error ${axiosError.response.status}: ${
-              (axiosError.response.data as { errors?: string }).errors ||
-              'Error logging in with your email. Try again!'
-            }`
-          );
-        }
-      } else {
-        // Handling network error
-        message.error('Network error. Please check your connection.');
+      const result = await dispatch(login({ email, password })).unwrap();
+      
+      if (result.token) {
+        message.success('Login successful!');
+        // Clear form
+        setEmail('');
         setPassword('');
+        // Router will handle redirect via useEffect
       }
-    } finally {
-      setIsLoading(false);
+    } catch (err: any) {
+      // Error handling is done in useEffect
+      setPassword('');
     }
   };
 
@@ -244,7 +210,7 @@ const LoginComponent = () => {
             />
 
             <Button
-              loading={isLoading}
+              loading={loading}
               onClick={handleEmailLogin}
               className='inter-tight bg-[#F28729] rounded-full border-[#F28729] py-[3vh] hover:text-[#09090D] font-semibold text-[#09090D] ipad-portrait:text-[2vh] cursor-pointer hover:scale-[1.02]'
             >

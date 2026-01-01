@@ -1,9 +1,6 @@
 'use client';
 
 import React, { ReactNode, useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { getCurrentUser } from '@/store/slices/authSlice';
-import { fetchPersonas } from '@/store/slices/personaSlice';
 
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -26,38 +23,14 @@ export default function BoardLayout({
   userAvatar,
   children,
 }: BoardLayoutProps) {
-  const dispatch = useAppDispatch();
-  const { currentConversation, messages } = useAppSelector((state) => state.conversation);
-  const { user } = useAppSelector((state) => state.auth);
-  
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
-
-  // Initialize backend data
-  useEffect(() => {
-    dispatch(getCurrentUser()).catch(() => {
-      // Silently handle auth errors on initial load
-    });
-    dispatch(fetchPersonas());
-  }, [dispatch]);
-
-  // Update hasStartedConversation based on Redux state
-  useEffect(() => {
-    if (currentConversation || messages.length > 0) {
-      setHasStartedConversation(true);
-    }
-  }, [currentConversation, messages]);
-
-  const displayName = userName || (user ? `${user.firstName} ${user.lastName}` : undefined);
 
   const handleSendMessage = (message: string, files: File[]) => {
     setHasStartedConversation(true);
     
     // Call the exposed function from ConversationView
-    type WindowWithConversation = Window & {
-      addConversationMessage?: (message: string, files: File[]) => void;
-    };
-    if (typeof window !== 'undefined' && (window as WindowWithConversation).addConversationMessage) {
-      (window as WindowWithConversation).addConversationMessage!(message, files);
+    if (typeof window !== 'undefined' && (window as any).addConversationMessage) {
+      (window as any).addConversationMessage(message, files);
     }
   };
 
@@ -65,7 +38,7 @@ export default function BoardLayout({
     <div className='flex h-screen overflow-hidden bg-gray-50'>
       {/* Sidebar - Hidden on mobile */}
       <div className='hidden md:block'>
-        <Sidebar userName={displayName} userAvatar={userAvatar} />
+        <Sidebar userName={userName} userAvatar={userAvatar} />
       </div>
 
       {/* Main Content */}
@@ -99,7 +72,7 @@ export default function BoardLayout({
                   <>
                     {/* Welcome Message */}
                     <div className='mb-4 md:mb-6'>
-                      <WelcomeMessage userName={displayName} />
+                      <WelcomeMessage userName={userName} />
                     </div>
 
                     {/* Chat Input */}

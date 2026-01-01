@@ -4,11 +4,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import { dummyPersonas, getRandomResponse, getRandomPersonas } from '@/data/dummyData';
 import ChatMessage from './ChatMessage';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchMessages } from '@/store/slices/conversationSlice';
-import { fetchPersonas } from '@/store/slices/personaSlice';
-import useConversationSocket from '@/hooks/useConversationSocket';
-import { Message as ApiMessage } from '@/types/api';
+import { 
+  getConversationById, 
+  updateConversation, 
+  getCurrentConversationId,
+  generateConversationTitle 
+} from '@/lib/conversationStorage';
 
 interface ConversationViewProps {
   onSendMessage: (content: string, files: File[]) => void;
@@ -68,57 +69,37 @@ const initialMessages: Message[] = [
  * Main conversation view component - displays messages only
  */
 export default function ConversationView({ onSendMessage, conversationId, onTitleChange }: ConversationViewProps) {
-  const dispatch = useAppDispatch();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // Redux state
-  const { messages: backendMessages, messagesLoading, currentConversation, typingAgents } = useAppSelector(
-    (state) => state.conversation
-  );
-  const { personas } = useAppSelector((state) => state.persona);
-  const { user } = useAppSelector((state) => state.auth);
-  
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize WebSocket for real-time updates
-  useConversationSocket(currentConversation?.id || null);
-
-  // Load personas on mount
+  // Load conversation from storage on mount or when conversationId changes
   useEffect(() => {
-    if (personas.length === 0) {
-      dispatch(fetchPersonas());
-    }
-  }, [dispatch, personas.length]);
-
-  // Load conversation messages when conversationId changes
-  useEffect(() => {
-    if (conversationId || currentConversation?.id) {
-      const idToLoad = conversationId || currentConversation?.id;
-      if (idToLoad) {
-        dispatch(fetchMessages(idToLoad));
+    const loadedConversationId = conversationId || getCurrentConversationId();
+    if (loadedConversationId) {
+      const conversation = getConversationById(loadedConversationId);
+      if (conversation && conversation.messages.length > 0) {
+        setMessages(conversation.messages);
+        if (onTitleChange) {
+          onTitleChange(conversation.title);
+        }
       }
     }
-  }, [conversationId, currentConversation?.id, dispatch]);
+  }, [conversationId]);
 
-  // Convert backend messages to display format
+  // Save messages to storage whenever they change
   useEffect(() => {
-    if (backendMessages && backendMessages.length > 0) {
-      const convertedMessages: Message[] = backendMessages.map((msg: ApiMessage) => ({
-        id: msg.id,
-        personaId: msg.role === 'USER' ? 'user' : msg.agentType || 'assistant',
-        content: msg.content,
-        timestamp: new Date(msg.createdAt),
-      }));
-      setMessages(convertedMessages);
+    const currentId = conversationId || getCurrentConversationId();
+    if (currentId && messages.length > 0) {
+      updateConversation(currentId, messages);
+      
+      // Update title if needed
+      const firstUserMessage = messages.find(m => m.personaId === 'user');
+      if (firstUserMessage && onTitleChange) {
+        const title = generateConversationTitle(firstUserMessage.content);
+        onTitleChange(title);
+      }
     }
-  }, [backendMessages]);
-
-  // Update title when conversation changes
-  useEffect(() => {
-    if (currentConversation?.title && onTitleChange) {
-      onTitleChange(currentConversation.title);
-    }
-  }, [currentConversation?.title, onTitleChange]);
+  }, [messages, conversationId]);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -205,44 +186,10 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
                   avatar: 'Y',
                   color: '#E8FF2B',
                 }
-              : dummyPersonas.find((p) => p.id === message.personaId || p.id === message.personaId.toLowerCase()) || 
-                personas.find((p) => p.id === message.personaId)?.name ? {
-                  id: message.personaId,
-                  name: personas.find((p) => p.id === message.personaId)?.name || 'AI',
-                  role: personas.find((p) => p.id === message.personaId)?.description || 'Assistant',
-                  avatar: personas.find((p) => p.id === message.personaId)?.name.charAt(0) || 'A',
-                  color: '#888',
-                } : dummyPersonas[0];
+              : dummyPersonas.find((p) => p.id === message.personaId) || dummyPersonas[0];
 
           return <ChatMessage key={message.id} message={message} persona={persona} />;
         })}
-        
-        {/* Show typing indicators */}
-        {typingAgents.map((agentType) => {
-          const persona = dummyPersonas.find((p) => p.id === agentType.toLowerCase()) || 
-            personas.find((p) => p.type === agentType) ? {
-              id: agentType,
-              name: personas.find((p) => p.type === agentType)?.name || agentType,
-              role: 'AI Assistant',
-              avatar: personas.find((p) => p.type === agentType)?.name.charAt(0) || 'A',
-              color: '#888',
-            } : dummyPersonas[0];
-            
-          return (
-            <ChatMessage
-              key={`typing-${agentType}`}
-              message={{
-                id: `typing-${agentType}`,
-                personaId: agentType.toLowerCase(),
-                content: '',
-                timestamp: new Date(),
-                isTyping: true,
-              }}
-              persona={persona}
-            />
-          );
-        })}
-        
         <div ref={messagesEndRef} />
       </div>
     </div>
