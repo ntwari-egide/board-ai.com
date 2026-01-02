@@ -5,7 +5,9 @@ import Cookies from 'js-cookie';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { getCurrentUser } from '@/store/slices/authSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
-import { clearCurrentConversation } from '@/store/slices/conversationSlice';
+import { clearCurrentConversation, fetchConversationById, fetchMessages, setCurrentConversation } from '@/store/slices/conversationSlice';
+import { usePathname, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -17,6 +19,7 @@ interface BoardLayoutProps {
   userName?: string;
   userAvatar?: string;
   children?: ReactNode;
+  conversationId?: string;
 }
 
 /**
@@ -27,10 +30,19 @@ export default function BoardLayout({
   userName,
   userAvatar,
   children,
+  conversationId,
 }: BoardLayoutProps) {
   const dispatch = useAppDispatch();
   const { currentConversation, messages } = useAppSelector((state) => state.conversation);
   const { user } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+
+  const routeConversationId = useMemo(() => {
+    if (conversationId) return conversationId;
+    const match = pathname.match(/\/board\/(.+)$/);
+    return match ? match[1] : null;
+  }, [pathname, conversationId]);
   
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
 
@@ -59,6 +71,26 @@ export default function BoardLayout({
     }
   }, [currentConversation, messages]);
 
+  // If URL has a conversation id, hydrate it from backend (DB) and its messages
+  useEffect(() => {
+    if (!routeConversationId) return;
+    if (currentConversation?.id === routeConversationId) return;
+
+    dispatch(fetchConversationById(routeConversationId))
+      .unwrap()
+      .then((conv) => {
+        dispatch(setCurrentConversation(conv));
+        dispatch(fetchMessages(conv.id));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('last_conversation_id', conv.id);
+        }
+      })
+      .catch(() => {
+        // If not found, fall back to new chat
+        router.push('/board');
+      });
+  }, [routeConversationId, currentConversation?.id, dispatch, router]);
+
   const displayName = userName || (user ? `${user.firstName} ${user.lastName}` : undefined);
   const title = currentConversation?.title || 'New brainstorming';
 
@@ -70,6 +102,7 @@ export default function BoardLayout({
   const handleNewChat = () => {
     dispatch(clearCurrentConversation());
     setHasStartedConversation(false);
+    router.push('/board');
   };
 
   return (

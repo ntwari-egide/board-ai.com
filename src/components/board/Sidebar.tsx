@@ -89,6 +89,10 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
     const conversation = backendConversations?.find((c: ApiConversation) => c.id === conversationId);
     if (conversation) {
       dispatch(setCurrentConversation(conversation));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('last_conversation_id', conversationId);
+      }
+      router.push(`/board/${conversationId}`);
     } else {
       // Fallback to localStorage behavior
       setStorageConversationId(conversationId);

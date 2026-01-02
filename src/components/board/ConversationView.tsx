@@ -58,7 +58,7 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
     if (backendMessages && backendMessages.length > 0) {
       const convertedMessages: Message[] = backendMessages.map((msg: ApiMessage) => ({
         id: msg.id,
-        personaId: msg.role === 'USER' ? 'user' : msg.agentType || msg.personaId || 'assistant',
+        personaId: msg.role === 'USER' ? 'user' : msg.agentType || msg.personaId || 'agent',
         content: msg.content,
         timestamp: new Date(msg.createdAt),
       }));
@@ -112,13 +112,13 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
                 personasList.find((p) => p.id === message.personaId) ? {
                   id: message.personaId,
                   name: personasList.find((p) => p.id === message.personaId)?.name || message.personaId,
-                  role: personasList.find((p) => p.id === message.personaId)?.description || 'Assistant persona',
+                  role: personasList.find((p) => p.id === message.personaId)?.description || '',
                   avatar: personasList.find((p) => p.id === message.personaId)?.name?.charAt(0) || message.personaId.charAt(0).toUpperCase(),
                   color: personasList.find((p) => p.id === message.personaId)?.color || '#888',
                 } : {
                   id: message.personaId,
                   name: message.personaId,
-                  role: 'Assistant persona',
+                  role: '',
                   avatar: message.personaId.charAt(0).toUpperCase(),
                   color: '#888',
                 };
@@ -128,22 +128,23 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
         
         {/* Show typing indicators */}
         {typingAgents.map((agent) => {
-          const persona = dummyPersonas.find((p) => p.id === agent.agentType.toLowerCase()) || 
-            personasList.find((p) => p.id === agent.agentType) ? {
-              id: agent.agentType,
-              name: personasList.find((p) => p.id === agent.agentType)?.name || agent.agentName || agent.agentType,
-              role: 'AI Assistant',
-              avatar: personasList.find((p) => p.id === agent.agentType)?.name?.charAt(0) || agent.agentType.charAt(0),
-              color: '#888',
-            } : dummyPersonas[0];
-            
+          const personaMatch = personasList.find((p) => p.id === agent.agentType);
+          const persona = {
+            id: agent.agentType,
+            name: personaMatch?.name || agent.agentName || agent.agentType,
+            role: '',
+            avatar: personaMatch?.name?.charAt(0) || agent.agentType.charAt(0).toUpperCase(),
+            color: personaMatch?.color || '#e5e7eb',
+          };
+          const content = streamingChunks[agent.agentType] || '•••';
+
           return (
             <ChatMessage
               key={`typing-${agent.agentType}`}
               message={{
                 id: `typing-${agent.agentType}`,
                 personaId: agent.agentType.toLowerCase(),
-                content: streamingChunks[agent.agentType] || '',
+                content,
                 timestamp: new Date(),
                 isTyping: true,
               }}

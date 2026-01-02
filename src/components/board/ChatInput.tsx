@@ -8,7 +8,7 @@ import { SiOpenai } from 'react-icons/si';
 import { AiOutlineFile } from 'react-icons/ai';
 import { HiChevronDown } from 'react-icons/hi2';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { processMessage, createConversation, stepConversation, fetchConversations, addMessage, fetchMessages, fetchConversationById, setCurrentConversation } from '@/store/slices/conversationSlice';
+import { processMessage, createConversation, stepConversation, fetchConversations, addMessage, fetchMessages, fetchConversationById, setCurrentConversation, sendMessage } from '@/store/slices/conversationSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
 import { message as antMessage } from 'antd';
 
@@ -187,6 +187,14 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
           localStorage.setItem('last_conversation_id', conversationId);
         }
       }
+
+      // Persist the user message first so it appears in history
+      await dispatch(
+        sendMessage({
+          conversationId,
+          content: userMessageContent,
+        })
+      ).unwrap();
 
       // Process the message (triggers all AI personas)
       await dispatch(
