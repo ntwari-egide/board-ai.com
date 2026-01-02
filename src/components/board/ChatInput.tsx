@@ -8,7 +8,7 @@ import { SiOpenai } from 'react-icons/si';
 import { AiOutlineFile } from 'react-icons/ai';
 import { HiChevronDown } from 'react-icons/hi2';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { processMessage, createConversation } from '@/store/slices/conversationSlice';
+import { processMessage, createConversation, stepConversation, fetchConversations, addMessage, fetchMessages } from '@/store/slices/conversationSlice';
 import { message as antMessage } from 'antd';
 
 interface ChatInputProps {
@@ -28,6 +28,8 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(isCompact);
   const [isDragging, setIsDragging] = useState(false);
+  const [stepping, setStepping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle file selection
@@ -86,7 +88,8 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() && files.length === 0) return;
+    const trimmed = message.trim();
+    if (!trimmed && files.length === 0) return;
 
     // Check if personas are selected for new conversations
     if (!currentConversation && selectedPersonas.length === 0) {
@@ -97,9 +100,27 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
     // Trigger animation - move input to bottom
     setIsSubmitted(true);
 
+    // Optimistic user message so it appears immediately
+    const userMessageContent = trimmed;
+    const tempMessageId = `temp-${Date.now()}`;
+    if (userMessageContent) {
+      dispatch(addMessage({
+        id: tempMessageId,
+        role: 'USER',
+        content: userMessageContent,
+        personaId: 'user',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as any));
+    }
+
+    // Clear the input immediately and show sending state
+    setMessage('');
+    setIsSending(true);
+
     // Call parent callback if provided (for UI updates)
     if (onSendMessage) {
-      onSendMessage(message, files);
+      onSendMessage(userMessageContent, files);
     }
 
     try {
@@ -109,7 +130,7 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
       if (!conversationId) {
         const conversation = await dispatch(
           createConversation({
-            title: message.slice(0, 50) || 'New Conversation',
+            title: userMessageContent.slice(0, 50) || 'New Conversation',
             activePersonas: selectedPersonas,
             maxRounds: 3,
           })
@@ -121,13 +142,17 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
       await dispatch(
         processMessage({
           conversationId,
-          message,
+          message: userMessageContent,
         })
       ).unwrap();
 
+      // Refresh conversation list so history shows the new/updated thread
+      dispatch(fetchConversations({ limit: 50 }));
+      // Refresh messages to replace the optimistic user message with server data
+      dispatch(fetchMessages(conversationId));
+
       // Reset input fields but keep submitted state
       setTimeout(() => {
-        setMessage('');
         setFiles([]);
       }, 500);
     } catch (error) {
@@ -135,6 +160,25 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
       const errorMessage = error instanceof Error ? error.message : 'Backend unavailable - using local mode';
       antMessage.info('Working in offline mode');
       console.warn('Backend error:', errorMessage);
+      // Restore text so user can retry
+      setMessage(trimmed);
+    }
+    setIsSending(false);
+  };
+
+  const handleStep = async () => {
+    if (!currentConversation?.id) {
+      antMessage.warning('Start a conversation first');
+      return;
+    }
+    try {
+      setStepping(true);
+      await dispatch(stepConversation(currentConversation.id)).unwrap();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unable to step conversation';
+      antMessage.error(errorMessage);
+    } finally {
+      setStepping(false);
     }
   };
 
@@ -238,6 +282,7 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
               type='text'
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              disabled={isSending}
               placeholder='Ask your AI team...'
               className='w-full border-none bg-transparent font-urbanist text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 md:text-[15px]'
             />
@@ -268,14 +313,25 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
             </div>
 
             {/* Submit Button */}
-            <button
-              type='submit'
-              disabled={!message.trim() && files.length === 0}
-              className='flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white transition-all hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 md:h-9 md:w-9'
-              aria-label='Send message'
-            >
-              <IoArrowUp className='h-4 w-4' />
-            </button>
+            <div className='flex items-center gap-2'>
+              <button
+                type='button'
+                onClick={handleStep}
+                disabled={stepping || !currentConversation?.id}
+                className='hidden h-8 items-center justify-center rounded-lg border border-gray-200 px-2 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 disabled:border-gray-200 disabled:text-gray-400 md:flex'
+                aria-label='Advance persona turn'
+              >
+                {stepping ? 'Stepping…' : 'Step'}
+              </button>
+              <button
+                type='submit'
+                disabled={isSending || (!message.trim() && files.length === 0)}
+                className='flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white transition-all hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 md:h-9 md:w-9'
+                aria-label='Send message'
+              >
+                {isSending ? <span className='h-4 w-4 animate-pulse'>…</span> : <IoArrowUp className='h-4 w-4' />}
+              </button>
+            </div>
           </div>
         </m.div>
       </form>

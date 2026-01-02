@@ -70,6 +70,8 @@ export interface Conversation {
   title: string;
   status: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   activePersonas: string[];
+  currentSpeaker?: string | null;
+  turnIndex?: number;
   maxRounds: number;
   currentRound: number;
   user?: User;
@@ -82,11 +84,17 @@ export interface CreateConversationRequest {
   title: string;
   activePersonas: string[];
   maxRounds?: number;
+  currentSpeaker?: string;
+  turnIndex?: number;
 }
 
 export interface UpdateConversationRequest {
   title?: string;
   status?: 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  activePersonas?: string[];
+  currentSpeaker?: string;
+  turnIndex?: number;
+  maxRounds?: number;
 }
 
 export interface CreateMessageRequest {

@@ -15,6 +15,7 @@ interface ConversationState {
   currentConversation: Conversation | null;
   messages: Message[];
   typingAgents: { agentType: string; agentName: string }[];
+  streamingChunks: Record<string, string>;
   loading: boolean;
   messagesLoading: boolean;
   processingMessage: boolean;
@@ -31,6 +32,7 @@ const initialState: ConversationState = {
   currentConversation: null,
   messages: [],
   typingAgents: [],
+  streamingChunks: {},
   loading: false,
   messagesLoading: false,
   processingMessage: false,
@@ -142,6 +144,18 @@ export const processMessage = createAsyncThunk(
   }
 );
 
+export const stepConversation = createAsyncThunk(
+  'conversation/stepConversation',
+  async (conversationId: string, { rejectWithValue }) => {
+    try {
+      const result = await conversationService.stepConversation(conversationId);
+      return result;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to step conversation');
+    }
+  }
+);
+
 export const generateSummary = createAsyncThunk(
   'conversation/generateSummary',
   async (conversationId: string, { rejectWithValue }) => {
@@ -169,6 +183,9 @@ const conversationSlice = createSlice({
       state.typingAgents = [];
     },
     addMessage: (state, action: PayloadAction<Message>) => {
+      if (!Array.isArray(state.messages)) {
+        state.messages = [];
+      }
       state.messages.push(action.payload);
     },
     addTypingAgent: (state, action: PayloadAction<{ agentType: string; agentName: string }>) => {
@@ -186,6 +203,12 @@ const conversationSlice = createSlice({
     },
     clearTypingAgents: (state) => {
       state.typingAgents = [];
+    },
+    setStreamingChunk: (state, action: PayloadAction<{ agentType: string; chunk: string }>) => {
+      state.streamingChunks[action.payload.agentType] = action.payload.chunk;
+    },
+    clearStreamingChunk: (state, action: PayloadAction<string>) => {
+      delete state.streamingChunks[action.payload];
     },
     clearError: (state) => {
       state.error = null;
@@ -275,7 +298,7 @@ const conversationSlice = createSlice({
       })
       .addCase(fetchMessages.fulfilled, (state, action: PayloadAction<Message[]>) => {
         state.messagesLoading = false;
-        state.messages = action.payload;
+          state.messages = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         state.messagesLoading = false;
@@ -311,6 +334,21 @@ const conversationSlice = createSlice({
       })
       .addCase(processMessage.rejected, (state, action) => {
         state.processingMessage = false;
+        state.error = action.payload as string;
+      });
+
+    // Step conversation
+    builder
+      .addCase(stepConversation.fulfilled, (state, action) => {
+        if (action.payload?.message) {
+          state.messages.push(action.payload.message as any);
+        }
+        if (state.currentConversation) {
+          state.currentConversation.currentSpeaker = action.payload?.speaker || null;
+          state.currentConversation.turnIndex = (state.currentConversation.turnIndex || 0) + 1;
+        }
+      })
+      .addCase(stepConversation.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },

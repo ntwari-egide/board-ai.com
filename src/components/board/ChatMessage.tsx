@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Message, Persona } from '@/types/chat';
 import { AiOutlineFile } from 'react-icons/ai';
 
@@ -19,9 +21,18 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
       <div className='flex justify-end py-3 md:py-4'>
         <div className='max-w-[90%] md:max-w-[85%]'>
           <div className='rounded-2xl border border-[#C7E7EB] bg-white px-3.5 py-2.5 shadow-sm md:px-4 md:py-3'>
-            <p className='font-urbanist text-sm leading-relaxed text-gray-900 md:text-[15px]'>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className='markdown-render font-urbanist text-sm leading-relaxed text-gray-900 md:text-[15px]'
+              components={{
+                p: (props) => <p className='mb-2 last:mb-0' {...props} />,
+                ul: (props) => <ul className='mb-2 list-disc space-y-1 pl-5' {...props} />,
+                ol: (props) => <ol className='mb-2 list-decimal space-y-1 pl-5' {...props} />,
+                li: (props) => <li className='leading-relaxed text-gray-900' {...props} />,
+              }}
+            >
               {message.content}
-            </p>
+            </ReactMarkdown>
 
             {/* Attachments */}
             {message.attachments && message.attachments.length > 0 && (
@@ -72,9 +83,18 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
         {/* Message Text */}
         {!message.isTyping && (
           <>
-            <p className='font-urbanist text-sm leading-relaxed text-gray-700 md:text-[15px]'>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className='markdown-render font-urbanist text-sm leading-relaxed text-gray-700 md:text-[15px]'
+              components={{
+                p: (props) => <p className='mb-2 last:mb-0' {...props} />,
+                ul: (props) => <ul className='mb-2 list-disc space-y-1 pl-5' {...props} />,
+                ol: (props) => <ol className='mb-2 list-decimal space-y-1 pl-5' {...props} />,
+                li: (props) => <li className='leading-relaxed text-gray-700' {...props} />,
+              }}
+            >
               {message.content}
-            </p>
+            </ReactMarkdown>
 
             {/* Attachments */}
             {message.attachments && message.attachments.length > 0 && (

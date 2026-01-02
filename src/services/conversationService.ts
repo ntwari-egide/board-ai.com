@@ -45,6 +45,14 @@ export const conversationService = {
   },
 
   /**
+   * Advance the conversation by one agent turn
+   */
+  async stepConversation(id: string): Promise<{ speaker: string | null; message: any | null }> {
+    const response = await apiClient.post(`/orchestration/conversations/${id}/step`);
+    return response.data.data;
+  },
+
+  /**
    * Delete conversation
    */
   async deleteConversation(id: string): Promise<void> {

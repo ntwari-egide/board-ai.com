@@ -6,6 +6,7 @@ import {
   addTypingAgent,
   removeTypingAgent,
   setCurrentConversation,
+  setStreamingChunk,
 } from '@/store/slices/conversationSlice';
 import { Message } from '@/types/api';
 
@@ -61,6 +62,10 @@ export const useConversationSocket = (conversationId: string | null) => {
           agentType: data.personaId,
           agentName: data.chunk,
         }));
+        dispatch(setStreamingChunk({ agentType: data.personaId, chunk: data.chunk }));
+      } else {
+        dispatch(removeTypingAgent(data.personaId));
+        dispatch(setStreamingChunk({ agentType: data.personaId, chunk: '' }));
       }
     });
 

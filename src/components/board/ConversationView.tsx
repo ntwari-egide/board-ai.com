@@ -24,7 +24,7 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Redux state
-  const { messages: backendMessages, messagesLoading, currentConversation, typingAgents } = useAppSelector(
+  const { messages: backendMessages, messagesLoading, currentConversation, typingAgents, streamingChunks } = useAppSelector(
     (state) => state.conversation
   );
   const { personas } = useAppSelector((state) => state.persona);
@@ -58,7 +58,7 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
     if (backendMessages && backendMessages.length > 0) {
       const convertedMessages: Message[] = backendMessages.map((msg: ApiMessage) => ({
         id: msg.id,
-        personaId: msg.role === 'USER' ? 'user' : msg.agentType || 'assistant',
+        personaId: msg.role === 'USER' ? 'user' : msg.agentType || msg.personaId || 'assistant',
         content: msg.content,
         timestamp: new Date(msg.createdAt),
       }));
@@ -85,6 +85,18 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
   return (
     <div className='flex-1 overflow-y-auto bg-gray-50'>
       <div className='mx-auto max-w-3xl px-4 pb-3 pt-4 md:px-6 md:pb-4 md:pt-6'>
+        {currentConversation?.currentSpeaker && (
+          <div className='mb-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs text-gray-700 shadow-sm'>
+            <span className='inline-flex h-2 w-2 rounded-full bg-emerald-500' />
+            <span>Speaking: {
+              personasList.find((p) => p.id === currentConversation.currentSpeaker)?.name ||
+              currentConversation.currentSpeaker
+            }</span>
+            {typeof currentConversation.turnIndex === 'number' && (
+              <span className='text-gray-400'>• Turn {currentConversation.turnIndex + 1}</span>
+            )}
+          </div>
+        )}
         {messages.map((message) => {
           // Find persona (or create user persona)
           const persona =
@@ -96,14 +108,20 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
                   avatar: 'Y',
                   color: '#E8FF2B',
                 }
-              : dummyPersonas.find((p) => p.id === message.personaId || p.id === message.personaId.toLowerCase()) || 
-                personasList.find((p) => p.id === message.personaId)?.name ? {
+              : dummyPersonas.find((p) => p.id === message.personaId || p.id === message.personaId.toLowerCase()) ||
+                personasList.find((p) => p.id === message.personaId) ? {
                   id: message.personaId,
-                  name: personasList.find((p) => p.id === message.personaId)?.name || 'AI',
-                  role: personasList.find((p) => p.id === message.personaId)?.description || 'Assistant',
-                  avatar: personasList.find((p) => p.id === message.personaId)?.name?.charAt(0) || 'A',
+                  name: personasList.find((p) => p.id === message.personaId)?.name || message.personaId,
+                  role: personasList.find((p) => p.id === message.personaId)?.description || 'Assistant persona',
+                  avatar: personasList.find((p) => p.id === message.personaId)?.name?.charAt(0) || message.personaId.charAt(0).toUpperCase(),
+                  color: personasList.find((p) => p.id === message.personaId)?.color || '#888',
+                } : {
+                  id: message.personaId,
+                  name: message.personaId,
+                  role: 'Assistant persona',
+                  avatar: message.personaId.charAt(0).toUpperCase(),
                   color: '#888',
-                } : dummyPersonas[0];
+                };
 
           return <ChatMessage key={message.id} message={message} persona={persona} />;
         })}
@@ -125,7 +143,7 @@ export default function ConversationView({ onSendMessage, conversationId, onTitl
               message={{
                 id: `typing-${agent.agentType}`,
                 personaId: agent.agentType.toLowerCase(),
-                content: '',
+                content: streamingChunks[agent.agentType] || '',
                 timestamp: new Date(),
                 isTyping: true,
               }}

@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { getCurrentUser } from '@/store/slices/authSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
+import { clearCurrentConversation } from '@/store/slices/conversationSlice';
 
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -65,17 +66,22 @@ export default function BoardLayout({
     // Backend integration handles message sending through ChatInput
   };
 
+  const handleNewChat = () => {
+    dispatch(clearCurrentConversation());
+    setHasStartedConversation(false);
+  };
+
   return (
     <div className='flex h-screen overflow-hidden bg-gray-50'>
       {/* Sidebar - Hidden on mobile */}
       <div className='hidden md:block'>
-        <Sidebar userName={displayName} userAvatar={userAvatar} />
+        <Sidebar userName={displayName} userAvatar={userAvatar} onNewChat={handleNewChat} />
       </div>
 
       {/* Main Content */}
       <div className='flex flex-1 flex-col'>
         {/* Top Bar */}
-        <TopBar />
+        <TopBar onNewChat={handleNewChat} />
 
         {/* Content Area */}
         <main className='relative flex flex-1 flex-col overflow-hidden'>
