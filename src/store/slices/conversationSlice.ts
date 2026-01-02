@@ -16,6 +16,7 @@ interface ConversationState {
   messages: Message[];
   typingAgents: { agentType: string; agentName: string }[];
   streamingChunks: Record<string, string>;
+  streamingMessages: Record<string, Message>;
   loading: boolean;
   messagesLoading: boolean;
   processingMessage: boolean;
@@ -27,12 +28,29 @@ interface ConversationState {
   };
 }
 
+const mergeMessages = (existing: Message[], incoming: Message[]): Message[] => {
+  const byId = new Map<string, Message>();
+  existing.forEach((m) => {
+    if (m?.id) byId.set(m.id, m);
+  });
+  incoming.forEach((m) => {
+    if (m?.id) {
+      byId.set(m.id, m);
+    } else {
+      // Fallback for messages without id
+      byId.set(`tmp-${byId.size + 1}-${Date.now()}`, m);
+    }
+  });
+  return Array.from(byId.values());
+};
+
 const initialState: ConversationState = {
   conversations: [],
   currentConversation: null,
   messages: [],
   typingAgents: [],
   streamingChunks: {},
+  streamingMessages: {},
   loading: false,
   messagesLoading: false,
   processingMessage: false,
@@ -174,8 +192,22 @@ const conversationSlice = createSlice({
   initialState,
   reducers: {
     setCurrentConversation: (state, action: PayloadAction<Conversation | null>) => {
-      state.currentConversation = action.payload;
-      state.messages = action.payload?.messages || [];
+      // Preserve existing messages when setting the same conversation without message payload (e.g., list click refresh)
+      const incoming = action.payload;
+      const sameConversation = incoming && state.currentConversation?.id === incoming.id;
+
+      state.currentConversation = incoming;
+
+      if (!incoming) {
+        state.messages = [];
+        return;
+      }
+
+      if (Array.isArray(incoming.messages) && incoming.messages.length > 0) {
+        state.messages = mergeMessages(state.messages || [], incoming.messages as Message[]);
+      } else if (!sameConversation) {
+        state.messages = [];
+      }
     },
     clearCurrentConversation: (state) => {
       state.currentConversation = null;
@@ -187,6 +219,38 @@ const conversationSlice = createSlice({
         state.messages = [];
       }
       state.messages.push(action.payload);
+    },
+    upsertStreamingMessage: (state, action: PayloadAction<{ personaId: string; chunk: string }>) => {
+      if (!Array.isArray(state.messages)) {
+        state.messages = [];
+      }
+      const streamId = `stream-${action.payload.personaId}`;
+      const existing = state.messages.find((m) => m.id === streamId);
+      if (existing) {
+        existing.content = (existing.content || '') + action.payload.chunk;
+      } else {
+        const msg: Message = {
+          id: streamId,
+          role: 'AGENT',
+          agentType: action.payload.personaId,
+          content: action.payload.chunk,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as any;
+        state.messages.push(msg);
+      }
+      state.streamingMessages[action.payload.personaId] = state.messages.find((m) => m.id === streamId) as Message;
+    },
+    finalizeStreamingMessage: (state, action: PayloadAction<{ personaId: string; message: Message }>) => {
+      // Remove temp stream message if present
+      const streamId = `stream-${action.payload.personaId}`;
+      state.messages = state.messages.filter((m) => m.id !== streamId);
+      delete state.streamingMessages[action.payload.personaId];
+
+      if (!Array.isArray(state.messages)) {
+        state.messages = [];
+      }
+      state.messages.push(action.payload.message);
     },
     addTypingAgent: (state, action: PayloadAction<{ agentType: string; agentName: string }>) => {
       const exists = state.typingAgents.some(
@@ -209,6 +273,7 @@ const conversationSlice = createSlice({
     },
     clearStreamingChunk: (state, action: PayloadAction<string>) => {
       delete state.streamingChunks[action.payload];
+      delete state.streamingMessages[action.payload];
     },
     clearError: (state) => {
       state.error = null;
@@ -298,7 +363,11 @@ const conversationSlice = createSlice({
       })
       .addCase(fetchMessages.fulfilled, (state, action: PayloadAction<Message[]>) => {
         state.messagesLoading = false;
-          state.messages = Array.isArray(action.payload) ? action.payload : [];
+        const incoming = Array.isArray(action.payload) ? action.payload : [];
+        if (!Array.isArray(state.messages)) {
+          state.messages = [];
+        }
+        state.messages = mergeMessages(state.messages, incoming as Message[]);
       })
       .addCase(fetchMessages.rejected, (state, action) => {
         state.messagesLoading = false;
@@ -308,6 +377,7 @@ const conversationSlice = createSlice({
     // Send message
     builder
       .addCase(sendMessage.fulfilled, (state, action: PayloadAction<Message>) => {
+        if (!Array.isArray(state.messages)) state.messages = [];
         state.messages.push(action.payload);
       });
 
@@ -323,7 +393,10 @@ const conversationSlice = createSlice({
         // But we can add them here as a fallback
         const incoming = action.payload.data;
         if (Array.isArray(incoming)) {
-          state.messages = incoming;
+          if (!Array.isArray(state.messages)) {
+            state.messages = [];
+          }
+          state.messages = mergeMessages(state.messages, incoming as Message[]);
         } else if (incoming) {
           // Defensive: only push when state.messages is an array
           if (!Array.isArray(state.messages)) {
@@ -341,7 +414,8 @@ const conversationSlice = createSlice({
     builder
       .addCase(stepConversation.fulfilled, (state, action) => {
         if (action.payload?.message) {
-          state.messages.push(action.payload.message as any);
+          if (!Array.isArray(state.messages)) state.messages = [];
+          state.messages = mergeMessages(state.messages, [action.payload.message as any]);
         }
         if (state.currentConversation) {
           state.currentConversation.currentSpeaker = action.payload?.speaker || null;
@@ -361,6 +435,10 @@ export const {
   addTypingAgent,
   removeTypingAgent,
   clearTypingAgents,
+  setStreamingChunk,
+  clearStreamingChunk,
+  upsertStreamingMessage,
+  finalizeStreamingMessage,
   clearError,
 } = conversationSlice.actions;
 

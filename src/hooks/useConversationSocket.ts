@@ -7,6 +7,9 @@ import {
   removeTypingAgent,
   setCurrentConversation,
   setStreamingChunk,
+  upsertStreamingMessage,
+  finalizeStreamingMessage,
+  clearStreamingChunk,
 } from '@/store/slices/conversationSlice';
 import { Message } from '@/types/api';
 
@@ -37,10 +40,10 @@ export const useConversationSocket = (conversationId: string | null) => {
 
     // Listen for complete agent messages (backend.md format)
     socketService.onAgentMessage((data) => {
+      if (!data) return;
       // Remove typing indicator
       dispatch(removeTypingAgent(data.personaId));
-      
-      // Add the complete message
+      dispatch(clearStreamingChunk(data.personaId));
       const message: Message = {
         id: data.id,
         conversation: data.conversationId,
@@ -49,23 +52,23 @@ export const useConversationSocket = (conversationId: string | null) => {
         agentType: data.personaId,
         createdAt: data.createdAt,
         updatedAt: data.createdAt,
-      };
-      dispatch(addMessage(message));
+      } as any;
+      dispatch(finalizeStreamingMessage({ personaId: data.personaId, message }));
     });
 
     // Listen for streaming chunks (optional - for real-time display)
     socketService.onAgentStream((data) => {
-      // Handle streaming chunks if needed
-      // Can be used to show partial messages as they're generated
+      if (!data) return;
       if (!data.isComplete) {
         dispatch(addTypingAgent({
           agentType: data.personaId,
-          agentName: data.chunk,
+          agentName: data.personaId,
         }));
-        dispatch(setStreamingChunk({ agentType: data.personaId, chunk: data.chunk }));
+        dispatch(upsertStreamingMessage({ personaId: data.personaId, chunk: data.chunk || '' }));
+        dispatch(setStreamingChunk({ agentType: data.personaId, chunk: data.chunk || '' }));
       } else {
         dispatch(removeTypingAgent(data.personaId));
-        dispatch(setStreamingChunk({ agentType: data.personaId, chunk: '' }));
+        dispatch(clearStreamingChunk(data.personaId));
       }
     });
 

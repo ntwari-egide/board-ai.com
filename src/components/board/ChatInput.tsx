@@ -9,6 +9,7 @@ import { AiOutlineFile } from 'react-icons/ai';
 import { HiChevronDown } from 'react-icons/hi2';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { processMessage, createConversation, stepConversation, fetchConversations, addMessage, fetchMessages } from '@/store/slices/conversationSlice';
+import { fetchPersonas } from '@/store/slices/personaSlice';
 import { message as antMessage } from 'antd';
 
 interface ChatInputProps {
@@ -22,7 +23,7 @@ interface ChatInputProps {
 export default function ChatInput({ onSendMessage, isCompact = false }: ChatInputProps) {
   const dispatch = useAppDispatch();
   const { currentConversation } = useAppSelector((state) => state.conversation);
-  const { selectedPersonas } = useAppSelector((state) => state.persona);
+  const { selectedPersonas, personas } = useAppSelector((state) => state.persona);
   
   const [message, setMessage] = useState('');
   const [files, setFiles] = useState<File[]>([]);
@@ -30,7 +31,17 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
   const [isDragging, setIsDragging] = useState(false);
   const [stepping, setStepping] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionOpen, setMentionOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Ensure personas are loaded for tagging suggestions
+  useEffect(() => {
+    if (!personas?.length) {
+      dispatch(fetchPersonas());
+    }
+  }, [dispatch, personas?.length]);
 
   // Handle file selection
   const handleFileSelect = (selectedFiles: FileList | null) => {
@@ -83,6 +94,27 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
     e.preventDefault();
     setIsDragging(false);
     handleFileSelect(e.dataTransfer.files);
+  };
+
+  const availablePersonas = React.useMemo(() => {
+    const list = Array.isArray(personas) ? personas : [];
+    if (selectedPersonas && selectedPersonas.length > 0) {
+      return list.filter((p) => selectedPersonas.includes(p.id));
+    }
+    return list;
+  }, [personas, selectedPersonas]);
+
+  const updateMentionState = (value: string, cursor: number | null) => {
+    const caret = cursor ?? value.length;
+    const before = value.slice(0, caret);
+    const match = /@([\w-]{0,50})$/.exec(before);
+    if (match) {
+      setMentionQuery(match[1]);
+      setMentionOpen(true);
+    } else {
+      setMentionQuery('');
+      setMentionOpen(false);
+    }
   };
 
   // Handle form submission
@@ -280,8 +312,13 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
             <IoSparkles className='h-4 w-4 flex-shrink-0 text-gray-400' />
             <input
               type='text'
+              ref={inputRef}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value;
+                setMessage(next);
+                updateMentionState(next, e.target.selectionStart);
+              }}
               disabled={isSending}
               placeholder='Ask your AI team...'
               className='w-full border-none bg-transparent font-urbanist text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 md:text-[15px]'
@@ -391,6 +428,50 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
         </m.div>
       )}
       </m.div>
+
+      {mentionOpen && availablePersonas.length > 0 && (
+        <div className='relative'>
+          <div className='absolute z-20 mt-2 w-full max-w-[320px] rounded-xl border border-gray-200 bg-white shadow-lg'>
+            <div className='max-h-64 overflow-auto p-2'>
+              {availablePersonas
+                .filter((p) =>
+                  mentionQuery
+                    ? `${p.id} ${p.name}`.toLowerCase().includes(mentionQuery.toLowerCase())
+                    : true,
+                )
+                .map((p) => (
+                  <button
+                    key={p.id}
+                    type='button'
+                    className='flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left hover:bg-gray-50'
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      const caret = inputRef.current?.selectionStart ?? message.length;
+                      const before = message.slice(0, caret);
+                      const after = message.slice(caret);
+                      const replaced = before.replace(/@([\w-]{0,50})$/, `@${p.id} `);
+                      const next = `${replaced}${after}`;
+                      setMessage(next);
+                      setMentionOpen(false);
+                      setMentionQuery('');
+                      // Move cursor to after inserted mention
+                      requestAnimationFrame(() => {
+                        const pos = replaced.length;
+                        if (inputRef.current) {
+                          inputRef.current.focus();
+                          inputRef.current.setSelectionRange(pos, pos);
+                        }
+                      });
+                    }}
+                  >
+                    <span className='font-semibold text-gray-900'>@{p.id}</span>
+                    <span className='text-sm text-gray-600'>{p.name}</span>
+                  </button>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
     </LazyMotion>
   );
 }
