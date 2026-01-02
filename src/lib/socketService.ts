@@ -7,16 +7,26 @@ import {
   StatusChangeEvent,
 } from '@/types/api';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
+const deriveBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+  if (typeof window !== 'undefined') {
+    const { protocol, host } = window.location;
+    const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProtocol}//${host}`;
+  }
+  return 'http://localhost:3000';
+};
+
+const SOCKET_URL = deriveBaseUrl();
 const SOCKET_PATH = process.env.NEXT_PUBLIC_WS_PATH || '/socket.io';
 
 class SocketService {
   private socket: Socket | null = null;
   private isConnected = false;
 
-  connect(conversationId: string): Socket {
-    // Always connect per-conversation namespace as per backend spec
-    const namespace = `/conversations/${conversationId}`;
+  connect(): Socket {
+    // Backend gateway namespace is /board
+    const namespace = '/board';
 
     if (this.socket && this.isConnected && this.socket.nsp === namespace) {
       return this.socket;
@@ -57,30 +67,34 @@ class SocketService {
   }
 
   // Join/leave are not needed when using per-conversation namespace; kept for compatibility
-  joinConversation(_conversationId: string): void {
-    /* no-op */
+  joinConversation(conversationId: string, userId?: string): void {
+    if (this.socket) {
+      this.socket.emit('join_conversation', { conversationId, userId: userId || 'anon' });
+    }
   }
 
-  leaveConversation(_conversationId: string): void {
-    /* no-op */
+  leaveConversation(conversationId: string): void {
+    if (this.socket) {
+      this.socket.emit('leave_conversation', { conversationId });
+    }
   }
 
   // Match backend.md WebSocket events
   onAgentStream(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('AGENT_STREAM', callback);
+      this.socket.on('agent_stream', callback);
     }
   }
 
   onAgentMessage(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('AGENT_MESSAGE', callback);
+      this.socket.on('agent_response', callback);
     }
   }
 
   onAgentTyping(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('AGENT_TYPING', callback);
+      this.socket.on('agent_typing', callback);
     }
   }
 
@@ -92,7 +106,7 @@ class SocketService {
 
   onSessionComplete(callback: (data: any) => void): void {
     if (this.socket) {
-      this.socket.on('SESSION_COMPLETE', callback);
+      this.socket.on('session_complete', callback);
     }
   }
 

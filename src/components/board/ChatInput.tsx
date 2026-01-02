@@ -8,7 +8,7 @@ import { SiOpenai } from 'react-icons/si';
 import { AiOutlineFile } from 'react-icons/ai';
 import { HiChevronDown } from 'react-icons/hi2';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { processMessage, createConversation, stepConversation, fetchConversations, addMessage, fetchMessages } from '@/store/slices/conversationSlice';
+import { processMessage, createConversation, stepConversation, fetchConversations, addMessage, fetchMessages, fetchConversationById, setCurrentConversation } from '@/store/slices/conversationSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
 import { message as antMessage } from 'antd';
 
@@ -42,6 +42,21 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
       dispatch(fetchPersonas());
     }
   }, [dispatch, personas?.length]);
+
+  // Hydrate last conversation if state was reset (e.g., hot reload)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (currentConversation) return;
+    const lastId = localStorage.getItem('last_conversation_id');
+    if (lastId) {
+      dispatch(fetchConversationById(lastId))
+        .unwrap()
+        .then((conv) => dispatch(setCurrentConversation(conv)))
+        .catch(() => {
+          localStorage.removeItem('last_conversation_id');
+        });
+    }
+  }, [dispatch, currentConversation]);
 
   // Handle file selection
   const handleFileSelect = (selectedFiles: FileList | null) => {
@@ -168,6 +183,9 @@ export default function ChatInput({ onSendMessage, isCompact = false }: ChatInpu
           })
         ).unwrap();
         conversationId = conversation.id;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('last_conversation_id', conversationId);
+        }
       }
 
       // Process the message (triggers all AI personas)

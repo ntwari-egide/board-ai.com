@@ -11,7 +11,7 @@ interface PersonaState {
 
 const initialState: PersonaState = {
   personas: [],
-  selectedPersonas: [],
+  selectedPersonas: ['pm', 'developer', 'marketing', 'ux', 'qa'],
   loading: false,
   error: null,
 };

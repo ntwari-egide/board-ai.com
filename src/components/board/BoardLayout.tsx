@@ -60,6 +60,7 @@ export default function BoardLayout({
   }, [currentConversation, messages]);
 
   const displayName = userName || (user ? `${user.firstName} ${user.lastName}` : undefined);
+  const title = currentConversation?.title || 'New brainstorming';
 
   const handleSendMessage = (message: string, files: File[]) => {
     setHasStartedConversation(true);
@@ -90,7 +91,7 @@ export default function BoardLayout({
             {/* Page Title - Sticky Header - Hidden on mobile */}
             <div className='sticky top-0 z-10 hidden border-b border-gray-200/50 bg-white/70 px-6 py-3 backdrop-blur-xl md:block'>
               <h2 className='font-urbanist text-sm font-medium text-gray-900'>
-                New brainstorming
+                {title}
               </h2>
             </div>
             {hasStartedConversation ? (

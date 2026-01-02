@@ -23,52 +23,57 @@ export const useConversationSocket = (conversationId: string | null) => {
   useEffect(() => {
     if (!conversationId) return;
 
-    // Connect directly to per-conversation namespace (/conversations/:id)
-    socketService.connect(conversationId);
+    socketService.connect();
+    socketService.joinConversation(conversationId);
 
-    // Listen for agent typing (backend.md format)
+    // Listen for agent typing (backend emits agent_typing)
     socketService.onAgentTyping((data) => {
-      if (data.isTyping) {
-        dispatch(addTypingAgent({
-          agentType: data.personaId,
-          agentName: data.message || data.personaId,
-        }));
+      const personaId = data.agentType || data.personaId;
+      if (!personaId) return;
+      if (data.isTyping === false) {
+        dispatch(removeTypingAgent(personaId));
       } else {
-        dispatch(removeTypingAgent(data.personaId));
+        dispatch(addTypingAgent({
+          agentType: personaId,
+          agentName: data.message || personaId,
+        }));
       }
     });
 
-    // Listen for complete agent messages (backend.md format)
+    // Listen for complete agent messages (agent_response)
     socketService.onAgentMessage((data) => {
       if (!data) return;
-      // Remove typing indicator
-      dispatch(removeTypingAgent(data.personaId));
-      dispatch(clearStreamingChunk(data.personaId));
+      const personaId = data.agentType || data.personaId;
+      if (!personaId) return;
+      dispatch(removeTypingAgent(personaId));
+      dispatch(clearStreamingChunk(personaId));
       const message: Message = {
-        id: data.id,
-        conversation: data.conversationId,
+        id: data.message?.id || data.id,
+        conversation: data.message?.conversationId || data.conversationId,
         role: 'AGENT',
-        content: data.content,
-        agentType: data.personaId,
-        createdAt: data.createdAt,
-        updatedAt: data.createdAt,
+        content: data.message?.content || data.content,
+        agentType: personaId,
+        createdAt: data.message?.createdAt || data.createdAt,
+        updatedAt: data.message?.createdAt || data.createdAt,
       } as any;
-      dispatch(finalizeStreamingMessage({ personaId: data.personaId, message }));
+      dispatch(finalizeStreamingMessage({ personaId, message }));
     });
 
-    // Listen for streaming chunks (optional - for real-time display)
+    // Listen for streaming chunks
     socketService.onAgentStream((data) => {
       if (!data) return;
+      const personaId = data.agentType || data.personaId;
+      if (!personaId) return;
       if (!data.isComplete) {
         dispatch(addTypingAgent({
-          agentType: data.personaId,
-          agentName: data.personaId,
+          agentType: personaId,
+          agentName: personaId,
         }));
-        dispatch(upsertStreamingMessage({ personaId: data.personaId, chunk: data.chunk || '' }));
-        dispatch(setStreamingChunk({ agentType: data.personaId, chunk: data.chunk || '' }));
+        dispatch(upsertStreamingMessage({ personaId, chunk: data.chunk || '' }));
+        dispatch(setStreamingChunk({ agentType: personaId, chunk: data.chunk || '' }));
       } else {
-        dispatch(removeTypingAgent(data.personaId));
-        dispatch(clearStreamingChunk(data.personaId));
+        dispatch(removeTypingAgent(personaId));
+        dispatch(clearStreamingChunk(personaId));
       }
     });
 
@@ -96,10 +101,10 @@ export const useConversationSocket = (conversationId: string | null) => {
       if (conversationId) {
         socketService.leaveConversation(conversationId);
       }
-      socketService.off('AGENT_TYPING');
-      socketService.off('AGENT_MESSAGE');
-      socketService.off('AGENT_STREAM');
-      socketService.off('SESSION_COMPLETE');
+      socketService.off('agent_typing');
+      socketService.off('agent_response');
+      socketService.off('agent_stream');
+      socketService.off('session_complete');
       socketService.off('ERROR');
     };
   }, [conversationId, dispatch, currentConversation]);
