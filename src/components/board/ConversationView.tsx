@@ -39,12 +39,15 @@ export default function ConversationView({
     currentConversation,
     typingAgents,
     streamingChunks,
+    processingMessage,
   } = useAppSelector((state) => state.conversation);
   const { personas, selectedPersonas } = useAppSelector(
     (state) => state.persona
   );
   const personasList = Array.isArray(personas) ? personas : [];
   const { user } = useAppSelector((state) => state.auth);
+  const isWaiting =
+    messagesLoading || processingMessage || typingAgents.length > 0;
 
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -133,6 +136,17 @@ export default function ConversationView({
   return (
     <div className='flex-1 overflow-y-auto bg-gray-50'>
       <div className='mx-auto max-w-3xl px-4 pb-3 pt-4 md:px-6 md:pb-4 md:pt-6'>
+        {isWaiting && (
+          <div className='sticky top-2 z-20 mb-3 flex justify-end'>
+            <div className='flex items-center gap-2 rounded-full bg-gray-900 px-3 py-2 text-white shadow-lg shadow-gray-300/50'>
+              <span className='relative flex h-2.5 w-2.5'>
+                <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60' />
+                <span className='relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500' />
+              </span>
+              <span className='text-xs font-semibold'>AI is responding…</span>
+            </div>
+          </div>
+        )}
         {currentConversation?.currentSpeaker && (
           <div className='mb-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs text-gray-700 shadow-sm'>
             <span className='inline-flex h-2 w-2 rounded-full bg-emerald-500' />
@@ -186,28 +200,9 @@ export default function ConversationView({
           );
         })}
 
-        {/* Show typing indicators */}
-        {typingAgents.map((agent) => {
-          const normalizedId = agent.agentType?.toLowerCase?.() || '';
-          if (!selectedPersonas.includes(normalizedId)) return null;
+        {/* Removed inline empty-state loader to avoid stray bubble */}
 
-          const persona = getPersonaData(agent.agentType);
-          const content = streamingChunks[agent.agentType] || '•••';
-
-          return (
-            <ChatMessage
-              key={`typing-${agent.agentType}`}
-              message={{
-                id: `typing-${agent.agentType}`,
-                personaId: agent.agentType.toLowerCase(),
-                content,
-                timestamp: new Date(),
-                isTyping: true,
-              }}
-              persona={persona}
-            />
-          );
-        })}
+        {/* Typing indicators suppressed; sticky pill covers the waiting state */}
 
         <div ref={messagesEndRef} />
       </div>

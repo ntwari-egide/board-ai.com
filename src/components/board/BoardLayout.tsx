@@ -1,12 +1,10 @@
 'use client';
 
-import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useMemo } from 'react';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { getCurrentUser } from '@/store/slices/authSlice';
 import {
   clearCurrentConversation,
   fetchConversationById,
@@ -56,17 +54,6 @@ export default function BoardLayout({
 
   // Initialize backend data (optional - works without auth)
   useEffect(() => {
-    // Only call /auth/me when a token exists; otherwise stay in guest mode
-    if (typeof window !== 'undefined') {
-      const token =
-        Cookies.get('auth_token') || localStorage.getItem('auth_token');
-      if (token) {
-        dispatch(getCurrentUser()).catch(() => {
-          // Silently handle - app works without auth
-        });
-      }
-    }
-
     // Load personas (works without auth if backend allows)
     dispatch(fetchPersonas()).catch(() => {
       // Use dummy personas as fallback
@@ -124,8 +111,6 @@ export default function BoardLayout({
       {/* Sidebar - Hidden on mobile */}
       <div className='hidden md:block'>
         <Sidebar
-          userName={displayName}
-          userAvatar={userAvatar}
           onNewChat={handleNewChat}
         />
       </div>

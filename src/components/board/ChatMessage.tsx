@@ -1,14 +1,14 @@
 import React from 'react';
+import { IconType } from 'react-icons';
 import { AiOutlineFile } from 'react-icons/ai';
 import {
-  HiOutlineFaceSmile,
-  HiOutlineGavel,
+  HiOutlineClipboardDocumentList,
   HiOutlineCodeBracketSquare,
+  HiOutlineFaceSmile,
+  HiOutlinePaintBrush,
   HiOutlineShieldCheck,
   HiOutlineSparkles,
-  HiOutlinePaintBrush,
 } from 'react-icons/hi2';
-import { IconType } from 'react-icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -24,10 +24,17 @@ interface ChatMessageProps {
  */
 export default function ChatMessage({ message, persona }: ChatMessageProps) {
   const isUser = message.personaId === 'user';
+  const hasContent = (message.content || '').trim().length > 0;
+  const hasAttachments = (message.attachments?.length || 0) > 0;
+
+  // Skip rendering if there's nothing to show (prevents empty bubbles)
+  if (!hasContent && !hasAttachments && !message.isTyping) {
+    return null;
+  }
 
   const personaIconMap: Record<string, IconType> = {
     marketing: HiOutlineFaceSmile,
-    pm: HiOutlineGavel,
+    pm: HiOutlineClipboardDocumentList,
     developer: HiOutlineCodeBracketSquare,
     qa: HiOutlineShieldCheck,
     ux: HiOutlineSparkles,
@@ -43,7 +50,7 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
           <div className='rounded-2xl border border-[#C7E7EB] bg-white px-3.5 py-2.5 shadow-sm md:px-4 md:py-3'>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className='markdown-render font-urbanist text-[13px] leading-relaxed text-gray-900 md:text-sm'
+              className='markdown-render font-urbanist text-[14px] leading-[1.75] text-gray-900 md:text-[14px]'
               components={{
                 p: (props) => <p className='mb-2 last:mb-0' {...props} />,
                 ul: (props) => (
@@ -115,7 +122,7 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
           <>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className='markdown-render font-urbanist text-[13px] leading-relaxed text-gray-700 md:text-sm'
+              className='markdown-render font-urbanist text-[14px] leading-[1.75] text-gray-700 md:text-[14px]'
               components={{
                 p: (props) => <p className='mb-2 last:mb-0' {...props} />,
                 ul: (props) => (

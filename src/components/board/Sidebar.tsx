@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { HiOutlineChatBubbleLeftRight, HiOutlineUser } from 'react-icons/hi2';
 import { IoTimeOutline } from 'react-icons/io5';
-import { LuLogOut } from 'react-icons/lu';
 
 import {
   getAllConversations,
@@ -13,7 +12,6 @@ import {
 import { dummyPersonas } from '@/data/dummyData';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { logout } from '@/store/slices/authSlice';
 import {
   clearCurrentConversation,
   fetchConversations,
@@ -28,8 +26,6 @@ import {
 import { Conversation } from '@/types/chat';
 
 interface SidebarProps {
-  userName?: string;
-  userAvatar?: string;
   onNewChat?: () => void;
   currentConversationId?: string | null;
 }
@@ -38,8 +34,6 @@ interface SidebarProps {
  * Sidebar component with logo, search, and new chat button
  */
 export default function Sidebar({
-  userName,
-  userAvatar,
   onNewChat,
   currentConversationId,
 }: SidebarProps) {
@@ -51,7 +45,6 @@ export default function Sidebar({
   const { conversations: backendConversations } = useAppSelector(
     (state) => state.conversation
   );
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const { personas: backendPersonas, selectedPersonas } = useAppSelector(
     (state) => state.persona
   );
@@ -97,7 +90,6 @@ export default function Sidebar({
   }, [
     dispatch,
     backendPersonas.length,
-    isAuthenticated,
     currentConversationId,
     loadConversations,
   ]);
@@ -141,12 +133,6 @@ export default function Sidebar({
     if (onNewChat) {
       onNewChat();
     }
-  };
-
-  const handleLogout = async () => {
-    await dispatch(logout());
-    // Stay on current page - no redirect needed
-    window.location.reload();
   };
 
   const handlePersonaToggle = (personaId: string) => {
@@ -294,37 +280,12 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* User Profile - Bottom */}
+      {/* User Profile - Bottom (Guest Mode) */}
       <div className='mt-auto'>
-        {userAvatar || userName || user ? (
-          <div className='flex items-center gap-2'>
-            <div className='h-8 w-8 overflow-hidden rounded-full border-2 border-[#E8FF2B] bg-gradient-to-br from-gray-100 to-gray-200'>
-              {userAvatar ? (
-                <img
-                  src={userAvatar}
-                  alt={userName || user?.firstName || 'User'}
-                  className='h-full w-full object-cover'
-                />
-              ) : (
-                <div className='flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300'>
-                  <HiOutlineUser className='h-4 w-4 text-gray-500' />
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleLogout}
-              className='text-gray-600 transition-colors hover:text-gray-900'
-              aria-label='Sign out'
-            >
-              <LuLogOut className='h-4 w-4' />
-            </button>
-          </div>
-        ) : (
-          <div className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700'>
-            <HiOutlineUser className='h-3.5 w-3.5' />
-            <span>Guest Mode</span>
-          </div>
-        )}
+        <div className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700'>
+          <HiOutlineUser className='h-3.5 w-3.5' />
+          <span>Guest Mode</span>
+        </div>
       </div>
     </aside>
   );

@@ -69,7 +69,7 @@ export default function ChatInput({
     if (lastId) {
       dispatch(fetchConversationById(lastId))
         .unwrap()
-        .then((conv) => dispatch(setCurrentConversation(conv)))
+        .then((conv: any) => dispatch(setCurrentConversation(conv)))
         .catch(() => {
           localStorage.removeItem('last_conversation_id');
         });
@@ -281,7 +281,6 @@ export default function ChatInput({
           ease: 'easeInOut',
         }}
       >
-
         <form onSubmit={handleSubmit} className='relative'>
           {/* File Upload Input (hidden) */}
           <input
