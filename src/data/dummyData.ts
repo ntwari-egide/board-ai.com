@@ -29,6 +29,20 @@ export const dummyPersonas: Persona[] = [
     avatar: 'Q',
     color: '#A78BFA', // purple
   },
+  {
+    id: 'ux',
+    name: 'UX Research',
+    role: 'User Experience Researcher',
+    avatar: 'U',
+    color: '#0EA5E9', // light blue
+  },
+  {
+    id: 'ui',
+    name: 'UI Design',
+    role: 'Interface Designer',
+    avatar: 'I',
+    color: '#FACC15', // yellow
+  },
 ];
 
 export const dummyResponses: Record<string, string[]> = {

@@ -1,7 +1,7 @@
 'use client';
 
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useMemo } from 'react';
 
@@ -44,8 +44,7 @@ export default function BoardLayout({
   );
   const { user } = useAppSelector((state) => state.auth);
   const router = useRouter();
-  const pathname =
-    typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname = router.asPath || '';
 
   const routeConversationId = useMemo(() => {
     if (conversationId) return conversationId;
@@ -97,7 +96,7 @@ export default function BoardLayout({
       })
       .catch(() => {
         // If not found, fall back to new chat
-        router.push('/board');
+        router.replace('/');
       });
   }, [routeConversationId, currentConversation?.id, dispatch, router]);
 
@@ -113,7 +112,11 @@ export default function BoardLayout({
   const handleNewChat = () => {
     dispatch(clearCurrentConversation());
     setHasStartedConversation(false);
-    router.push('/board');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('last_conversation_id');
+    }
+    // Always navigate to home to ensure fresh state; replace to avoid back button returning to old thread
+    router.replace('/');
   };
 
   return (

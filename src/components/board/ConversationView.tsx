@@ -40,7 +40,9 @@ export default function ConversationView({
     typingAgents,
     streamingChunks,
   } = useAppSelector((state) => state.conversation);
-  const { personas } = useAppSelector((state) => state.persona);
+  const { personas, selectedPersonas } = useAppSelector(
+    (state) => state.persona
+  );
   const personasList = Array.isArray(personas) ? personas : [];
   const { user } = useAppSelector((state) => state.auth);
 
@@ -70,15 +72,17 @@ export default function ConversationView({
   useEffect(() => {
     if (backendMessages && backendMessages.length > 0) {
       const convertedMessages: Message[] = backendMessages.map(
-        (msg: ApiMessage) => ({
-          id: msg.id,
-          personaId:
-            msg.role === 'USER'
-              ? 'user'
-              : msg.agentType || msg.personaId || 'agent',
-          content: msg.content,
-          timestamp: new Date(msg.createdAt),
-        })
+        (msg: ApiMessage) => {
+          const isAgent = msg.role?.toUpperCase() === 'AGENT';
+          return {
+            id: msg.id,
+            personaId: isAgent
+              ? msg.agentType || msg.personaId || 'agent'
+              : 'user',
+            content: msg.content,
+            timestamp: new Date(msg.createdAt),
+          };
+        }
       );
       setMessages(convertedMessages);
     }
@@ -100,6 +104,32 @@ export default function ConversationView({
     scrollToBottom();
   }, [messages, typingAgents]);
 
+  const getPersonaData = (personaId: string) => {
+    const normalizedId = personaId?.toLowerCase?.() || personaId;
+    const dummyMatch = dummyPersonas.find(
+      (p) => p.id.toLowerCase() === normalizedId
+    );
+    const storeMatch = personasList.find(
+      (p) => p.id.toLowerCase() === normalizedId
+    );
+
+    const name = storeMatch?.name || dummyMatch?.name || personaId;
+    const role = storeMatch?.description || dummyMatch?.role || '';
+    const color = storeMatch?.color || dummyMatch?.color || '#888';
+    const avatar =
+      storeMatch?.name?.charAt(0) ||
+      dummyMatch?.avatar ||
+      personaId.charAt(0).toUpperCase();
+
+    return {
+      id: personaId,
+      name,
+      role,
+      avatar,
+      color,
+    };
+  };
+
   return (
     <div className='flex-1 overflow-y-auto bg-gray-50'>
       <div className='mx-auto max-w-3xl px-4 pb-3 pt-4 md:px-6 md:pb-4 md:pt-6'>
@@ -120,6 +150,11 @@ export default function ConversationView({
           </div>
         )}
         {messages.map((message) => {
+          const normalizedId = message.personaId?.toLowerCase?.() || '';
+          const isAllowed =
+            normalizedId === 'user' || selectedPersonas.includes(normalizedId);
+          if (!isAllowed) return null;
+
           // Find persona (or create user persona)
           const persona =
             message.personaId === 'user'
@@ -136,21 +171,7 @@ export default function ConversationView({
                     p.id === message.personaId.toLowerCase()
                 ) || personasList.find((p) => p.id === message.personaId)
               ? {
-                  id: message.personaId,
-                  name:
-                    personasList.find((p) => p.id === message.personaId)
-                      ?.name || message.personaId,
-                  role:
-                    personasList.find((p) => p.id === message.personaId)
-                      ?.description || '',
-                  avatar:
-                    personasList
-                      .find((p) => p.id === message.personaId)
-                      ?.name?.charAt(0) ||
-                    message.personaId.charAt(0).toUpperCase(),
-                  color:
-                    personasList.find((p) => p.id === message.personaId)
-                      ?.color || '#888',
+                  ...getPersonaData(message.personaId),
                 }
               : {
                   id: message.personaId,
@@ -167,18 +188,10 @@ export default function ConversationView({
 
         {/* Show typing indicators */}
         {typingAgents.map((agent) => {
-          const personaMatch = personasList.find(
-            (p) => p.id === agent.agentType
-          );
-          const persona = {
-            id: agent.agentType,
-            name: personaMatch?.name || agent.agentName || agent.agentType,
-            role: '',
-            avatar:
-              personaMatch?.name?.charAt(0) ||
-              agent.agentType.charAt(0).toUpperCase(),
-            color: personaMatch?.color || '#e5e7eb',
-          };
+          const normalizedId = agent.agentType?.toLowerCase?.() || '';
+          if (!selectedPersonas.includes(normalizedId)) return null;
+
+          const persona = getPersonaData(agent.agentType);
           const content = streamingChunks[agent.agentType] || '•••';
 
           return (

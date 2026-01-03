@@ -1,5 +1,14 @@
 import React from 'react';
 import { AiOutlineFile } from 'react-icons/ai';
+import {
+  HiOutlineFaceSmile,
+  HiOutlineGavel,
+  HiOutlineCodeBracketSquare,
+  HiOutlineShieldCheck,
+  HiOutlineSparkles,
+  HiOutlinePaintBrush,
+} from 'react-icons/hi2';
+import { IconType } from 'react-icons';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -16,6 +25,16 @@ interface ChatMessageProps {
 export default function ChatMessage({ message, persona }: ChatMessageProps) {
   const isUser = message.personaId === 'user';
 
+  const personaIconMap: Record<string, IconType> = {
+    marketing: HiOutlineFaceSmile,
+    pm: HiOutlineGavel,
+    developer: HiOutlineCodeBracketSquare,
+    qa: HiOutlineShieldCheck,
+    ux: HiOutlineSparkles,
+    ui: HiOutlinePaintBrush,
+  };
+  const PersonaIcon = personaIconMap[persona.id?.toLowerCase?.() || ''];
+
   if (isUser) {
     // User message - right aligned with white bg and cyan border
     return (
@@ -24,7 +43,7 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
           <div className='rounded-2xl border border-[#C7E7EB] bg-white px-3.5 py-2.5 shadow-sm md:px-4 md:py-3'>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className='markdown-render font-urbanist text-sm leading-relaxed text-gray-900 md:text-[15px]'
+              className='markdown-render font-urbanist text-[13px] leading-relaxed text-gray-900 md:text-sm'
               components={{
                 p: (props) => <p className='mb-2 last:mb-0' {...props} />,
                 ul: (props) => (
@@ -71,13 +90,17 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
         className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium text-white md:h-10 md:w-10 md:text-sm'
         style={{ backgroundColor: persona.color }}
       >
-        {persona.avatar}
+        {PersonaIcon ? (
+          <PersonaIcon className='h-4 w-4 md:h-5 md:w-5' />
+        ) : (
+          persona.avatar
+        )}
       </div>
 
       {/* Message Content */}
       <div className='flex-1'>
         <div className='mb-0.5 flex items-center gap-2 md:mb-1'>
-          <span className='font-urbanist text-xs font-semibold text-gray-900 md:text-sm'>
+          <span className='font-urbanist text-xs font-semibold uppercase text-gray-900 md:text-sm'>
             {persona.name}
           </span>
           {message.isTyping && (
@@ -92,7 +115,7 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
           <>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className='markdown-render font-urbanist text-sm leading-relaxed text-gray-700 md:text-[15px]'
+              className='markdown-render font-urbanist text-[13px] leading-relaxed text-gray-700 md:text-sm'
               components={{
                 p: (props) => <p className='mb-2 last:mb-0' {...props} />,
                 ul: (props) => (

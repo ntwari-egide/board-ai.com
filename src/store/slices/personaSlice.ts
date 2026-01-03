@@ -13,7 +13,7 @@ interface PersonaState {
 
 const initialState: PersonaState = {
   personas: [],
-  selectedPersonas: ['pm', 'developer', 'marketing', 'ux', 'qa'],
+  selectedPersonas: ['pm', 'developer', 'marketing', 'ux', 'ui', 'qa'],
   loading: false,
   error: null,
 };

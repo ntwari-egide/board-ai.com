@@ -27,12 +27,12 @@ export default function WelcomeMessage({
 
       {/* Greeting */}
       <h1 className='mb-1 px-4 font-urbanist text-base font-medium leading-tight text-gray-900 md:mb-1.5 md:text-lg'>
-        Hey, how can I help you?
+        I can help you with a consensus-driven strategy for modern product teams.
       </h1>
 
       {/* Description */}
       <p className='max-w-xl px-6 font-urbanist text-xs leading-snug text-gray-500 md:text-[13px]'>
-        Start a new project or ask for help.
+        A Collaborative AI Boardroom: Stress-testing product ideas with specialized autonomous agents.
       </p>
     </div>
   );

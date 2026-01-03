@@ -62,6 +62,8 @@ export default function ChatInput({
   // Hydrate last conversation if state was reset (e.g., hot reload)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Only hydrate an existing conversation when already on a conversation route
+    if (!window.location.pathname.includes('/board/')) return;
     if (currentConversation) return;
     const lastId = localStorage.getItem('last_conversation_id');
     if (lastId) {
@@ -272,26 +274,13 @@ export default function ChatInput({
         style={{ position: 'relative' }}
         initial={false}
         animate={{
-          maxWidth: isSubmitted ? '900px' : '800px',
+          maxWidth: isSubmitted ? '1180px' : '1080px',
         }}
         transition={{
           duration: 0.4,
           ease: 'easeInOut',
         }}
       >
-        {/* Action Buttons - Show when not submitted (welcome screen) */}
-        {!isSubmitted && (
-          <div className='mb-4 flex flex-wrap items-center justify-center gap-2'>
-            <button className='flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 font-urbanist text-sm text-gray-700 shadow-sm transition-all hover:bg-gray-50'>
-              <IoSparkles className='h-4 w-4 text-purple-500' />
-              <span>Start group thinking</span>
-            </button>
-            <button className='flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 font-urbanist text-sm text-gray-700 shadow-sm transition-all hover:bg-gray-50'>
-              <IoSparkles className='h-4 w-4 text-blue-500' />
-              <span>Generate final plan</span>
-            </button>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className='relative'>
           {/* File Upload Input (hidden) */}

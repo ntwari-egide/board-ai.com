@@ -217,7 +217,7 @@ export default function Sidebar({
           </span>
         </div>
         <div className='space-y-1'>
-          {displayPersonas.slice(0, 4).map((persona: ApiPersona) => {
+          {displayPersonas.map((persona: ApiPersona) => {
             const isSelected = selectedPersonas.includes(persona.id);
             const dummyPersona = dummyPersonas.find(
               (p) => p.id === persona.id || p.name === persona.name
