@@ -9,14 +9,16 @@ const CURRENT_CONVERSATION_KEY = 'board_current_conversation';
 export function saveConversation(conversation: Conversation): void {
   try {
     const conversations = getAllConversations();
-    const existingIndex = conversations.findIndex(c => c.id === conversation.id);
-    
+    const existingIndex = conversations.findIndex(
+      (c) => c.id === conversation.id
+    );
+
     if (existingIndex >= 0) {
       conversations[existingIndex] = conversation;
     } else {
       conversations.unshift(conversation);
     }
-    
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
   } catch (error) {
     console.error('Error saving conversation:', error);
@@ -30,7 +32,7 @@ export function getAllConversations(): Conversation[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
-    
+
     const conversations = JSON.parse(stored);
     // Convert date strings back to Date objects
     return conversations.map((conv: any) => ({
@@ -53,7 +55,7 @@ export function getAllConversations(): Conversation[] {
  */
 export function getConversationById(id: string): Conversation | null {
   const conversations = getAllConversations();
-  return conversations.find(c => c.id === id) || null;
+  return conversations.find((c) => c.id === id) || null;
 }
 
 /**
@@ -62,7 +64,7 @@ export function getConversationById(id: string): Conversation | null {
 export function deleteConversation(id: string): void {
   try {
     const conversations = getAllConversations();
-    const filtered = conversations.filter(c => c.id !== id);
+    const filtered = conversations.filter((c) => c.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   } catch (error) {
     console.error('Error deleting conversation:', error);
@@ -114,14 +116,14 @@ export function createNewConversation(firstMessage?: Message): Conversation {
   const now = new Date();
   const conversation: Conversation = {
     id: `conv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    title: firstMessage 
+    title: firstMessage
       ? generateConversationTitle(firstMessage.content)
       : 'New brainstorming',
     messages: firstMessage ? [firstMessage] : [],
     createdAt: now,
     updatedAt: now,
   };
-  
+
   return conversation;
 }
 
@@ -136,15 +138,17 @@ export function updateConversation(
   if (conversation) {
     conversation.messages = messages;
     conversation.updatedAt = new Date();
-    
+
     // Update title if it's still the default
     if (conversation.title === 'New brainstorming' && messages.length > 0) {
-      const firstUserMessage = messages.find(m => m.personaId === 'user');
+      const firstUserMessage = messages.find((m) => m.personaId === 'user');
       if (firstUserMessage) {
-        conversation.title = generateConversationTitle(firstUserMessage.content);
+        conversation.title = generateConversationTitle(
+          firstUserMessage.content
+        );
       }
     }
-    
+
     saveConversation(conversation);
   }
 }

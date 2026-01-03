@@ -2,8 +2,8 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import genAI from './features/gen-ai';
 import authReducer from './store/slices/authSlice';
-import personaReducer from './store/slices/personaSlice';
 import conversationReducer from './store/slices/conversationSlice';
+import personaReducer from './store/slices/personaSlice';
 
 export const store = configureStore({
   reducer: {

@@ -21,7 +21,7 @@ const LoginComponent = ({ onSuccess }: LoginComponentProps) => {
 
   const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
     const idToken = credentialResponse.credential;
-    
+
     if (!idToken) {
       message.error('Google authentication failed');
       return;

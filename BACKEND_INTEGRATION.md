@@ -7,11 +7,13 @@ The NestJS backend (localhost:8080) has been **fully integrated** into your exis
 ## Changes Made
 
 ### 1. BoardLayout Component
+
 - Added Redux hooks to fetch user and persona data on mount
 - Syncs `hasStartedConversation` state with Redux conversation state
 - No UI changes
 
 ### 2. ChatInput Component
+
 - Replaced dummy `onSendMessage` callback with backend API call
 - Now calls `createConversation` (if new) and `processMessage` Redux actions
 - Validates persona selection before sending messages
@@ -20,6 +22,7 @@ The NestJS backend (localhost:8080) has been **fully integrated** into your exis
 - No UI changes - all animations preserved
 
 ### 3. ConversationView Component
+
 - **Removed all dummy data logic** (no more `getRandomResponse`, `getRandomPersonas`)
 - Replaced localStorage with Redux state for messages
 - Added WebSocket integration via `useConversationSocket` hook for real-time updates
@@ -28,6 +31,7 @@ The NestJS backend (localhost:8080) has been **fully integrated** into your exis
 - No UI changes
 
 ### 4. Sidebar Component
+
 - Added persona selection UI (NEW FEATURE)
 - Loads conversations from backend API: `GET /api/conversations`
 - Click persona buttons to select/deselect them for conversations
@@ -36,6 +40,7 @@ The NestJS backend (localhost:8080) has been **fully integrated** into your exis
 - Sign In button redirects to /auth/login
 
 ### 5. WebSocket Integration (backend.md compliant)
+
 - Connected to conversation-specific namespace: `/conversations/:conversationId`
 - Listens for `AGENT_TYPING` event with typing indicators
 - Listens for `AGENT_MESSAGE` event for complete agent responses
@@ -48,14 +53,16 @@ The NestJS backend (localhost:8080) has been **fully integrated** into your exis
 The integration follows the exact WebSocket events from backend.md:
 
 ### Server → Client Events
+
 - ✅ `AGENT_STREAM` - Token-by-token streaming (supported)
 - ✅ `AGENT_MESSAGE` - Complete agent message
-- ✅ `AGENT_TYPING` - Agent typing indicator  
+- ✅ `AGENT_TYPING` - Agent typing indicator
 - ✅ `METRIC_UPDATE` - Real-time metrics (ready for implementation)
 - ✅ `SESSION_COMPLETE` - Consensus reached notification
 - ✅ `ERROR` - Error handling
 
 ### Client → Server Events (Ready)
+
 - `JOIN_CONVERSATION` - Join conversation room
 - `START_SESSION` - Trigger agent discussion (via REST API)
 - `STOP_SESSION` - Stop ongoing discussion
@@ -76,6 +83,7 @@ The integration follows the exact WebSocket events from backend.md:
 ## Environment Variables
 
 Make sure you have `.env.local` with:
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 NEXT_PUBLIC_WS_URL=ws://localhost:8080
@@ -84,6 +92,7 @@ NEXT_PUBLIC_WS_URL=ws://localhost:8080
 ## API Integration Summary
 
 ### REST API Endpoints Used
+
 - `POST /api/auth/login` - User authentication
 - `POST /api/auth/register` - User registration
 - `GET /api/auth/me` - Get current user
@@ -94,6 +103,7 @@ NEXT_PUBLIC_WS_URL=ws://localhost:8080
 - `GET /api/personas` - List available AI personas
 
 ### WebSocket Events (backend.md compliant)
+
 - **Namespace**: `/conversations/:conversationId`
 - **Auth**: JWT token via `auth.token` parameter
 - **Events**: `AGENT_TYPING`, `AGENT_MESSAGE`, `AGENT_STREAM`, `SESSION_COMPLETE`, `ERROR`
@@ -101,6 +111,7 @@ NEXT_PUBLIC_WS_URL=ws://localhost:8080
 ## Fallback Behavior
 
 The app gracefully falls back to:
+
 - Dummy personas if backend personas aren't loaded yet
 - Empty conversation list if backend unavailable
 - Original UI behavior if backend connection fails
@@ -108,12 +119,14 @@ The app gracefully falls back to:
 ## What's Different from Before
 
 ### Before (Dummy Data)
+
 - Used `window.addConversationMessage()` global function
 - Generated fake responses with `getRandomResponse()`
 - Used `localStorage` for persistence
 - Simulated typing with `setTimeout()`
 
 ### Now (Full Backend Integration)
+
 - Direct Redux action dispatches to backend API
 - Real AI agent responses via WebSocket
 - PostgreSQL database persistence

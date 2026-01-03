@@ -1,13 +1,15 @@
-/**
- * Comprehensive Board AI Frontend Integration
- * 
- * This document provides implementation examples and guidelines for integrating
- * the Board AI backend API with the React/Next.js frontend.
- */
+/\*\*
+
+- Comprehensive Board AI Frontend Integration
+-
+- This document provides implementation examples and guidelines for integrating
+- the Board AI backend API with the React/Next.js frontend.
+  \*/
 
 # 1. Setup & Configuration
 
 ## Environment Variables (.env.local)
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
@@ -20,6 +22,7 @@ NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
 The authentication flow has been integrated using Redux Toolkit:
 
 - **Login Component** (`src/component/auths/login.tsx`)
+
   - Uses Redux `login` action
   - Automatically stores JWT token in cookies
   - Redirects on successful authentication
@@ -30,6 +33,7 @@ The authentication flow has been integrated using Redux Toolkit:
   - Handles validation errors
 
 ### Usage Example:
+
 ```typescript
 import { useAppDispatch } from '@/store/hooks';
 import { login, getCurrentUser } from '@/store/slices/authSlice';
@@ -47,19 +51,26 @@ await dispatch(getCurrentUser()).unwrap();
 ## B. Conversation Management
 
 ### Creating a New Conversation:
+
 ```typescript
 import { createConversation } from '@/store/slices/conversationSlice';
 
-await dispatch(createConversation({
-  title: 'Product Launch Strategy',
-  activePersonas: ['marketing', 'developer', 'designer'],
-  maxRounds: 3
-})).unwrap();
+await dispatch(
+  createConversation({
+    title: 'Product Launch Strategy',
+    activePersonas: ['marketing', 'developer', 'designer'],
+    maxRounds: 3,
+  })
+).unwrap();
 ```
 
 ### Fetching Conversations:
+
 ```typescript
-import { fetchConversations, fetchConversationById } from '@/store/slices/conversationSlice';
+import {
+  fetchConversations,
+  fetchConversationById,
+} from '@/store/slices/conversationSlice';
 
 // Get all conversations
 await dispatch(fetchConversations({ page: 1, limit: 20 })).unwrap();
@@ -71,13 +82,16 @@ await dispatch(fetchConversationById(conversationId)).unwrap();
 ## C. Message Processing
 
 ### Sending a Message (triggers all AI personas):
+
 ```typescript
 import { processMessage } from '@/store/slices/conversationSlice';
 
-await dispatch(processMessage({
-  conversationId: currentConversation.id,
-  message: 'How should we approach our product launch?'
-})).unwrap();
+await dispatch(
+  processMessage({
+    conversationId: currentConversation.id,
+    message: 'How should we approach our product launch?',
+  })
+).unwrap();
 ```
 
 ## D. WebSocket Integration
@@ -89,13 +103,13 @@ import useConversationSocket from '@/hooks/useConversationSocket';
 
 function ConversationView({ conversationId }) {
   const { disconnect } = useConversationSocket(conversationId);
-  
+
   // Component will automatically receive:
   // - agent_typing events
   // - agent_response events
   // - round_completed events
   // - status_change events
-  
+
   useEffect(() => {
     return () => disconnect();
   }, []);
@@ -114,7 +128,7 @@ await dispatch(fetchPersonas()).unwrap();
 dispatch(togglePersona('marketing'));
 
 // Access selected personas
-const { selectedPersonas } = useAppSelector(state => state.persona);
+const { selectedPersonas } = useAppSelector((state) => state.persona);
 ```
 
 # 3. Component Integration Examples
@@ -126,18 +140,23 @@ const { selectedPersonas } = useAppSelector(state => state.persona);
 
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { createConversation, processMessage } from '@/store/slices/conversationSlice';
+import {
+  createConversation,
+  processMessage,
+} from '@/store/slices/conversationSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
 import useConversationSocket from '@/hooks/useConversationSocket';
 
 export default function BoardLayout() {
   const dispatch = useAppDispatch();
   const { currentConversation, messages, processingMessage } = useAppSelector(
-    state => state.conversation
+    (state) => state.conversation
   );
-  const { personas, selectedPersonas } = useAppSelector(state => state.persona);
-  const { user } = useAppSelector(state => state.auth);
-  
+  const { personas, selectedPersonas } = useAppSelector(
+    (state) => state.persona
+  );
+  const { user } = useAppSelector((state) => state.auth);
+
   // Initialize WebSocket
   useConversationSocket(currentConversation?.id || null);
 
@@ -153,24 +172,24 @@ export default function BoardLayout() {
     }
 
     // Create conversation
-    const conversation = await dispatch(createConversation({
-      title: message.slice(0, 50),
-      activePersonas: selectedPersonas,
-      maxRounds: 3
-    })).unwrap();
+    const conversation = await dispatch(
+      createConversation({
+        title: message.slice(0, 50),
+        activePersonas: selectedPersonas,
+        maxRounds: 3,
+      })
+    ).unwrap();
 
     // Process first message
-    await dispatch(processMessage({
-      conversationId: conversation.id,
-      message
-    })).unwrap();
+    await dispatch(
+      processMessage({
+        conversationId: conversation.id,
+        message,
+      })
+    ).unwrap();
   };
 
-  return (
-    <div className="board-layout">
-      {/* Your UI components */}
-    </div>
-  );
+  return <div className='board-layout'>{/* Your UI components */}</div>;
 }
 ```
 
@@ -185,30 +204,32 @@ import ChatMessage from './ChatMessage';
 
 export default function ConversationView() {
   const { messages, typingAgents, messagesLoading } = useAppSelector(
-    state => state.conversation
+    (state) => state.conversation
   );
-  const { personas } = useAppSelector(state => state.persona);
+  const { personas } = useAppSelector((state) => state.persona);
 
   // Get persona details for each message
   const getPersona = (agentType: string) => {
-    return personas.find(p => p.id === agentType);
+    return personas.find((p) => p.id === agentType);
   };
 
   return (
-    <div className="conversation-view">
+    <div className='conversation-view'>
       {messagesLoading && <div>Loading messages...</div>}
-      
+
       {messages.map((message) => (
         <ChatMessage
           key={message.id}
           message={message}
-          persona={message.agentType ? getPersona(message.agentType) : undefined}
+          persona={
+            message.agentType ? getPersona(message.agentType) : undefined
+          }
         />
       ))}
 
       {/* Typing Indicators */}
       {typingAgents.map((agent) => (
-        <div key={agent.agentType} className="typing-indicator">
+        <div key={agent.agentType} className='typing-indicator'>
           {agent.agentName} is typing...
         </div>
       ))}
@@ -224,53 +245,65 @@ export default function ConversationView() {
 
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { processMessage, createConversation } from '@/store/slices/conversationSlice';
+import {
+  processMessage,
+  createConversation,
+} from '@/store/slices/conversationSlice';
 
 export default function ChatInput() {
   const [input, setInput] = useState('');
   const dispatch = useAppDispatch();
   const { currentConversation, processingMessage } = useAppSelector(
-    state => state.conversation
+    (state) => state.conversation
   );
-  const { selectedPersonas } = useAppSelector(state => state.persona);
+  const { selectedPersonas } = useAppSelector((state) => state.persona);
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     if (!currentConversation) {
       // Create new conversation
-      const conversation = await dispatch(createConversation({
-        title: input.slice(0, 50),
-        activePersonas: selectedPersonas,
-        maxRounds: 3
-      })).unwrap();
+      const conversation = await dispatch(
+        createConversation({
+          title: input.slice(0, 50),
+          activePersonas: selectedPersonas,
+          maxRounds: 3,
+        })
+      ).unwrap();
 
       // Process message
-      await dispatch(processMessage({
-        conversationId: conversation.id,
-        message: input
-      })).unwrap();
+      await dispatch(
+        processMessage({
+          conversationId: conversation.id,
+          message: input,
+        })
+      ).unwrap();
     } else {
       // Process message in existing conversation
-      await dispatch(processMessage({
-        conversationId: currentConversation.id,
-        message: input
-      })).unwrap();
+      await dispatch(
+        processMessage({
+          conversationId: currentConversation.id,
+          message: input,
+        })
+      ).unwrap();
     }
 
     setInput('');
   };
 
   return (
-    <div className="chat-input">
+    <div className='chat-input'>
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
         disabled={processingMessage}
-        placeholder="Type your message..."
+        placeholder='Type your message...'
       />
-      <button onClick={handleSend} disabled={processingMessage || !input.trim()}>
+      <button
+        onClick={handleSend}
+        disabled={processingMessage || !input.trim()}
+      >
         {processingMessage ? 'Sending...' : 'Send'}
       </button>
     </div>
@@ -285,38 +318,38 @@ export default function ChatInput() {
 
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { 
-  fetchConversations, 
-  setCurrentConversation 
+import {
+  fetchConversations,
+  setCurrentConversation,
 } from '@/store/slices/conversationSlice';
 
 export default function Sidebar() {
   const dispatch = useAppDispatch();
   const { conversations, loading, currentConversation } = useAppSelector(
-    state => state.conversation
+    (state) => state.conversation
   );
-  const { user } = useAppSelector(state => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchConversations({ page: 1, limit: 20 }));
   }, [dispatch]);
 
   const handleSelectConversation = (conversationId: string) => {
-    const conversation = conversations.find(c => c.id === conversationId);
+    const conversation = conversations.find((c) => c.id === conversationId);
     if (conversation) {
       dispatch(setCurrentConversation(conversation));
     }
   };
 
   return (
-    <div className="sidebar">
-      <div className="user-info">
+    <div className='sidebar'>
+      <div className='user-info'>
         {user?.firstName} {user?.lastName}
       </div>
-      
+
       {loading && <div>Loading conversations...</div>}
-      
-      <div className="conversations-list">
+
+      <div className='conversations-list'>
         {conversations.map((conv) => (
           <div
             key={conv.id}
@@ -356,7 +389,9 @@ import analyticsService from '@/services/analyticsService';
 
 async function loadConversationAnalytics(conversationId: string) {
   try {
-    const analytics = await analyticsService.getConversationAnalytics(conversationId);
+    const analytics = await analyticsService.getConversationAnalytics(
+      conversationId
+    );
     console.log('Token usage:', analytics.totalTokens);
     console.log('Cost:', analytics.estimatedCost);
     console.log('Agent participation:', analytics.agentParticipation);
@@ -369,13 +404,15 @@ async function loadConversationAnalytics(conversationId: string) {
 # 6. Error Handling
 
 All services automatically handle:
+
 - 401 Unauthorized → Auto-logout and redirect to login
 - Network errors → Display user-friendly messages
 - Validation errors → Show field-specific errors
 
 Access errors via Redux state:
+
 ```typescript
-const { error } = useAppSelector(state => state.conversation);
+const { error } = useAppSelector((state) => state.conversation);
 
 useEffect(() => {
   if (error) {
@@ -397,7 +434,7 @@ import { getCurrentUser } from '@/store/slices/authSlice';
 export function ProtectedRoute({ children }) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isAuthenticated, loading } = useAppSelector(state => state.auth);
+  const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {

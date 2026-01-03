@@ -1,19 +1,25 @@
 'use client';
 
-import React, { ReactNode, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { getCurrentUser } from '@/store/slices/authSlice';
-import { fetchPersonas } from '@/store/slices/personaSlice';
-import { clearCurrentConversation, fetchConversationById, fetchMessages, setCurrentConversation } from '@/store/slices/conversationSlice';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { useMemo } from 'react';
 
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { getCurrentUser } from '@/store/slices/authSlice';
+import {
+  clearCurrentConversation,
+  fetchConversationById,
+  fetchMessages,
+  setCurrentConversation,
+} from '@/store/slices/conversationSlice';
+import { fetchPersonas } from '@/store/slices/personaSlice';
+
+import ChatInput from './ChatInput';
+import ConversationView from './ConversationView';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import WelcomeMessage from './WelcomeMessage';
-import ChatInput from './ChatInput';
-import ConversationView from './ConversationView';
 
 interface BoardLayoutProps {
   userName?: string;
@@ -33,24 +39,28 @@ export default function BoardLayout({
   conversationId,
 }: BoardLayoutProps) {
   const dispatch = useAppDispatch();
-  const { currentConversation, messages } = useAppSelector((state) => state.conversation);
+  const { currentConversation, messages } = useAppSelector(
+    (state) => state.conversation
+  );
   const { user } = useAppSelector((state) => state.auth);
   const router = useRouter();
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname =
+    typeof window !== 'undefined' ? window.location.pathname : '';
 
   const routeConversationId = useMemo(() => {
     if (conversationId) return conversationId;
     const match = pathname.match(/\/board\/(.+)$/);
     return match ? match[1] : null;
   }, [pathname, conversationId]);
-  
+
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
 
   // Initialize backend data (optional - works without auth)
   useEffect(() => {
     // Only call /auth/me when a token exists; otherwise stay in guest mode
     if (typeof window !== 'undefined') {
-      const token = Cookies.get('auth_token') || localStorage.getItem('auth_token');
+      const token =
+        Cookies.get('auth_token') || localStorage.getItem('auth_token');
       if (token) {
         dispatch(getCurrentUser()).catch(() => {
           // Silently handle - app works without auth
@@ -91,7 +101,8 @@ export default function BoardLayout({
       });
   }, [routeConversationId, currentConversation?.id, dispatch, router]);
 
-  const displayName = userName || (user ? `${user.firstName} ${user.lastName}` : undefined);
+  const displayName =
+    userName || (user ? `${user.firstName} ${user.lastName}` : undefined);
   const title = currentConversation?.title || 'New brainstorming';
 
   const handleSendMessage = (message: string, files: File[]) => {
@@ -109,7 +120,11 @@ export default function BoardLayout({
     <div className='flex h-screen overflow-hidden bg-gray-50'>
       {/* Sidebar - Hidden on mobile */}
       <div className='hidden md:block'>
-        <Sidebar userName={displayName} userAvatar={userAvatar} onNewChat={handleNewChat} />
+        <Sidebar
+          userName={displayName}
+          userAvatar={userAvatar}
+          onNewChat={handleNewChat}
+        />
       </div>
 
       {/* Main Content */}
@@ -133,7 +148,10 @@ export default function BoardLayout({
                 {/* Fixed Input at Bottom */}
                 <div className='bg-gradient-to-t from-gray-50 via-gray-50 to-transparent px-4 pb-4 pt-6 md:px-6 md:pb-6 md:pt-8'>
                   <div className='mx-auto max-w-3xl'>
-                    <ChatInput onSendMessage={handleSendMessage} isCompact={true} />
+                    <ChatInput
+                      onSendMessage={handleSendMessage}
+                      isCompact={true}
+                    />
                   </div>
                 </div>
               </>

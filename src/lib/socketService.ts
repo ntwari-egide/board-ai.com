@@ -1,7 +1,7 @@
-import { io, Socket } from 'socket.io-client';
 import Cookies from 'js-cookie';
+import { io, Socket } from 'socket.io-client';
+
 import {
-  AgentTypingEvent,
   AgentResponseEvent,
   RoundCompletedEvent,
   StatusChangeEvent,
@@ -69,7 +69,10 @@ class SocketService {
   // Join/leave are not needed when using per-conversation namespace; kept for compatibility
   joinConversation(conversationId: string, userId?: string): void {
     if (this.socket) {
-      this.socket.emit('join_conversation', { conversationId, userId: userId || 'anon' });
+      this.socket.emit('join_conversation', {
+        conversationId,
+        userId: userId || 'anon',
+      });
     }
   }
 
@@ -147,7 +150,9 @@ class SocketService {
 
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return Cookies.get('auth_token') || localStorage.getItem('auth_token') || null;
+    return (
+      Cookies.get('auth_token') || localStorage.getItem('auth_token') || null
+    );
   }
 }
 

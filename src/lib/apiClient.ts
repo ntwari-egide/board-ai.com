@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 class ApiClient {
   private client: AxiosInstance;
@@ -44,7 +45,9 @@ class ApiClient {
 
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return Cookies.get('auth_token') || localStorage.getItem('auth_token') || null;
+    return (
+      Cookies.get('auth_token') || localStorage.getItem('auth_token') || null
+    );
   }
 
   private setToken(token: string): void {

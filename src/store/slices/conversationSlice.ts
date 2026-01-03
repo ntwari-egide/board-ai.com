@@ -1,13 +1,14 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import conversationService from '@/services/conversationService';
 import messageService from '@/services/messageService';
 import orchestrationService from '@/services/orchestrationService';
+
 import {
   Conversation,
-  Message,
   CreateConversationRequest,
+  Message,
   UpdateConversationRequest,
-  ProcessMessageRequest,
 } from '@/types/api';
 
 interface ConversationState {
@@ -70,19 +71,29 @@ export const createConversation = createAsyncThunk(
       const conversation = await conversationService.createConversation(data);
       return conversation;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create conversation');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to create conversation'
+      );
     }
   }
 );
 
 export const fetchConversations = createAsyncThunk(
   'conversation/fetchAll',
-  async ({ page = 1, limit = 20 }: { page?: number; limit?: number }, { rejectWithValue }) => {
+  async (
+    { page = 1, limit = 20 }: { page?: number; limit?: number },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await conversationService.getUserConversations(page, limit);
+      const response = await conversationService.getUserConversations(
+        page,
+        limit
+      );
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch conversations');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch conversations'
+      );
     }
   }
 );
@@ -94,19 +105,29 @@ export const fetchConversationById = createAsyncThunk(
       const conversation = await conversationService.getConversationById(id);
       return conversation;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch conversation');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch conversation'
+      );
     }
   }
 );
 
 export const updateConversation = createAsyncThunk(
   'conversation/update',
-  async ({ id, data }: { id: string; data: UpdateConversationRequest }, { rejectWithValue }) => {
+  async (
+    { id, data }: { id: string; data: UpdateConversationRequest },
+    { rejectWithValue }
+  ) => {
     try {
-      const conversation = await conversationService.updateConversation(id, data);
+      const conversation = await conversationService.updateConversation(
+        id,
+        data
+      );
       return conversation;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update conversation');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update conversation'
+      );
     }
   }
 );
@@ -118,7 +139,9 @@ export const deleteConversation = createAsyncThunk(
       await conversationService.deleteConversation(id);
       return id;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete conversation');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to delete conversation'
+      );
     }
   }
 );
@@ -130,19 +153,28 @@ export const fetchMessages = createAsyncThunk(
       const messages = await messageService.getMessages(conversationId);
       return messages;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch messages');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch messages'
+      );
     }
   }
 );
 
 export const sendMessage = createAsyncThunk(
   'conversation/sendMessage',
-  async ({ conversationId, content }: { conversationId: string; content: string }, { rejectWithValue }) => {
+  async (
+    { conversationId, content }: { conversationId: string; content: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const message = await messageService.createMessage(conversationId, { content });
+      const message = await messageService.createMessage(conversationId, {
+        content,
+      });
       return message;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to send message');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to send message'
+      );
     }
   }
 );
@@ -154,10 +186,15 @@ export const processMessage = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await orchestrationService.processMessage(conversationId, { message });
+      const response = await orchestrationService.processMessage(
+        conversationId,
+        { message }
+      );
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to process message');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to process message'
+      );
     }
   }
 );
@@ -169,7 +206,9 @@ export const stepConversation = createAsyncThunk(
       const result = await conversationService.stepConversation(conversationId);
       return result;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to step conversation');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to step conversation'
+      );
     }
   }
 );
@@ -178,10 +217,14 @@ export const generateSummary = createAsyncThunk(
   'conversation/generateSummary',
   async (conversationId: string, { rejectWithValue }) => {
     try {
-      const response = await orchestrationService.generateSummary(conversationId);
+      const response = await orchestrationService.generateSummary(
+        conversationId
+      );
       return response.data.summary;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to generate summary');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to generate summary'
+      );
     }
   }
 );
@@ -191,10 +234,14 @@ const conversationSlice = createSlice({
   name: 'conversation',
   initialState,
   reducers: {
-    setCurrentConversation: (state, action: PayloadAction<Conversation | null>) => {
+    setCurrentConversation: (
+      state,
+      action: PayloadAction<Conversation | null>
+    ) => {
       // Preserve existing messages when setting the same conversation without message payload (e.g., list click refresh)
       const incoming = action.payload;
-      const sameConversation = incoming && state.currentConversation?.id === incoming.id;
+      const sameConversation =
+        incoming && state.currentConversation?.id === incoming.id;
 
       state.currentConversation = incoming;
 
@@ -204,7 +251,10 @@ const conversationSlice = createSlice({
       }
 
       if (Array.isArray(incoming.messages) && incoming.messages.length > 0) {
-        state.messages = mergeMessages(state.messages || [], incoming.messages as Message[]);
+        state.messages = mergeMessages(
+          state.messages || [],
+          incoming.messages as Message[]
+        );
       } else if (!sameConversation) {
         state.messages = [];
       }
@@ -220,7 +270,10 @@ const conversationSlice = createSlice({
       }
       state.messages.push(action.payload);
     },
-    upsertStreamingMessage: (state, action: PayloadAction<{ personaId: string; chunk: string }>) => {
+    upsertStreamingMessage: (
+      state,
+      action: PayloadAction<{ personaId: string; chunk: string }>
+    ) => {
       if (!Array.isArray(state.messages)) {
         state.messages = [];
       }
@@ -239,9 +292,14 @@ const conversationSlice = createSlice({
         } as any;
         state.messages.push(msg);
       }
-      state.streamingMessages[action.payload.personaId] = state.messages.find((m) => m.id === streamId) as Message;
+      state.streamingMessages[action.payload.personaId] = state.messages.find(
+        (m) => m.id === streamId
+      ) as Message;
     },
-    finalizeStreamingMessage: (state, action: PayloadAction<{ personaId: string; message: Message }>) => {
+    finalizeStreamingMessage: (
+      state,
+      action: PayloadAction<{ personaId: string; message: Message }>
+    ) => {
       // Remove temp stream message if present
       const streamId = `stream-${action.payload.personaId}`;
       state.messages = state.messages.filter((m) => m.id !== streamId);
@@ -252,9 +310,12 @@ const conversationSlice = createSlice({
       }
       state.messages.push(action.payload.message);
     },
-    addTypingAgent: (state, action: PayloadAction<{ agentType: string; agentName: string }>) => {
+    addTypingAgent: (
+      state,
+      action: PayloadAction<{ agentType: string; agentName: string }>
+    ) => {
       const exists = state.typingAgents.some(
-        agent => agent.agentType === action.payload.agentType
+        (agent) => agent.agentType === action.payload.agentType
       );
       if (!exists) {
         state.typingAgents.push(action.payload);
@@ -262,13 +323,16 @@ const conversationSlice = createSlice({
     },
     removeTypingAgent: (state, action: PayloadAction<string>) => {
       state.typingAgents = state.typingAgents.filter(
-        agent => agent.agentType !== action.payload
+        (agent) => agent.agentType !== action.payload
       );
     },
     clearTypingAgents: (state) => {
       state.typingAgents = [];
     },
-    setStreamingChunk: (state, action: PayloadAction<{ agentType: string; chunk: string }>) => {
+    setStreamingChunk: (
+      state,
+      action: PayloadAction<{ agentType: string; chunk: string }>
+    ) => {
       state.streamingChunks[action.payload.agentType] = action.payload.chunk;
     },
     clearStreamingChunk: (state, action: PayloadAction<string>) => {
@@ -286,12 +350,15 @@ const conversationSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(createConversation.fulfilled, (state, action: PayloadAction<Conversation>) => {
-        state.loading = false;
-        state.conversations.unshift(action.payload);
-        state.currentConversation = action.payload;
-        state.messages = [];
-      })
+      .addCase(
+        createConversation.fulfilled,
+        (state, action: PayloadAction<Conversation>) => {
+          state.loading = false;
+          state.conversations.unshift(action.payload);
+          state.currentConversation = action.payload;
+          state.messages = [];
+        }
+      )
       .addCase(createConversation.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -323,37 +390,48 @@ const conversationSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchConversationById.fulfilled, (state, action: PayloadAction<Conversation>) => {
-        state.loading = false;
-        state.currentConversation = action.payload;
-        state.messages = action.payload.messages || [];
-      })
+      .addCase(
+        fetchConversationById.fulfilled,
+        (state, action: PayloadAction<Conversation>) => {
+          state.loading = false;
+          state.currentConversation = action.payload;
+          state.messages = action.payload.messages || [];
+        }
+      )
       .addCase(fetchConversationById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
 
     // Update conversation
-    builder
-      .addCase(updateConversation.fulfilled, (state, action: PayloadAction<Conversation>) => {
-        const index = state.conversations.findIndex(c => c.id === action.payload.id);
+    builder.addCase(
+      updateConversation.fulfilled,
+      (state, action: PayloadAction<Conversation>) => {
+        const index = state.conversations.findIndex(
+          (c) => c.id === action.payload.id
+        );
         if (index > -1) {
           state.conversations[index] = action.payload;
         }
         if (state.currentConversation?.id === action.payload.id) {
           state.currentConversation = action.payload;
         }
-      });
+      }
+    );
 
     // Delete conversation
-    builder
-      .addCase(deleteConversation.fulfilled, (state, action: PayloadAction<string>) => {
-        state.conversations = state.conversations.filter(c => c.id !== action.payload);
+    builder.addCase(
+      deleteConversation.fulfilled,
+      (state, action: PayloadAction<string>) => {
+        state.conversations = state.conversations.filter(
+          (c) => c.id !== action.payload
+        );
         if (state.currentConversation?.id === action.payload) {
           state.currentConversation = null;
           state.messages = [];
         }
-      });
+      }
+    );
 
     // Fetch messages
     builder
@@ -361,25 +439,30 @@ const conversationSlice = createSlice({
         state.messagesLoading = true;
         state.error = null;
       })
-      .addCase(fetchMessages.fulfilled, (state, action: PayloadAction<Message[]>) => {
-        state.messagesLoading = false;
-        const incoming = Array.isArray(action.payload) ? action.payload : [];
-        if (!Array.isArray(state.messages)) {
-          state.messages = [];
+      .addCase(
+        fetchMessages.fulfilled,
+        (state, action: PayloadAction<Message[]>) => {
+          state.messagesLoading = false;
+          const incoming = Array.isArray(action.payload) ? action.payload : [];
+          if (!Array.isArray(state.messages)) {
+            state.messages = [];
+          }
+          state.messages = mergeMessages(state.messages, incoming as Message[]);
         }
-        state.messages = mergeMessages(state.messages, incoming as Message[]);
-      })
+      )
       .addCase(fetchMessages.rejected, (state, action) => {
         state.messagesLoading = false;
         state.error = action.payload as string;
       });
 
     // Send message
-    builder
-      .addCase(sendMessage.fulfilled, (state, action: PayloadAction<Message>) => {
+    builder.addCase(
+      sendMessage.fulfilled,
+      (state, action: PayloadAction<Message>) => {
         if (!Array.isArray(state.messages)) state.messages = [];
         state.messages.push(action.payload);
-      });
+      }
+    );
 
     // Process message
     builder
@@ -415,11 +498,15 @@ const conversationSlice = createSlice({
       .addCase(stepConversation.fulfilled, (state, action) => {
         if (action.payload?.message) {
           if (!Array.isArray(state.messages)) state.messages = [];
-          state.messages = mergeMessages(state.messages, [action.payload.message as any]);
+          state.messages = mergeMessages(state.messages, [
+            action.payload.message as any,
+          ]);
         }
         if (state.currentConversation) {
-          state.currentConversation.currentSpeaker = action.payload?.speaker || null;
-          state.currentConversation.turnIndex = (state.currentConversation.turnIndex || 0) + 1;
+          state.currentConversation.currentSpeaker =
+            action.payload?.speaker || null;
+          state.currentConversation.turnIndex =
+            (state.currentConversation.turnIndex || 0) + 1;
         }
       })
       .addCase(stepConversation.rejected, (state, action) => {

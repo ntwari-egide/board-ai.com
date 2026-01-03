@@ -1,7 +1,8 @@
-import * as React from 'react';
 import { useRouter } from 'next/router';
+import * as React from 'react';
 
 import BoardLayout from '@/components/board/BoardLayout';
+
 import Seo from '@/component/seo';
 
 export default function ConversationPage() {

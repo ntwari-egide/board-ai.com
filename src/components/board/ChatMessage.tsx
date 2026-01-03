@@ -1,8 +1,9 @@
 import React from 'react';
+import { AiOutlineFile } from 'react-icons/ai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
 import { Message, Persona } from '@/types/chat';
-import { AiOutlineFile } from 'react-icons/ai';
 
 interface ChatMessageProps {
   message: Message;
@@ -26,9 +27,15 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
               className='markdown-render font-urbanist text-sm leading-relaxed text-gray-900 md:text-[15px]'
               components={{
                 p: (props) => <p className='mb-2 last:mb-0' {...props} />,
-                ul: (props) => <ul className='mb-2 list-disc space-y-1 pl-5' {...props} />,
-                ol: (props) => <ol className='mb-2 list-decimal space-y-1 pl-5' {...props} />,
-                li: (props) => <li className='leading-relaxed text-gray-900' {...props} />,
+                ul: (props) => (
+                  <ul className='mb-2 list-disc space-y-1 pl-5' {...props} />
+                ),
+                ol: (props) => (
+                  <ol className='mb-2 list-decimal space-y-1 pl-5' {...props} />
+                ),
+                li: (props) => (
+                  <li className='leading-relaxed text-gray-900' {...props} />
+                ),
               }}
             >
               {message.content}
@@ -88,9 +95,15 @@ export default function ChatMessage({ message, persona }: ChatMessageProps) {
               className='markdown-render font-urbanist text-sm leading-relaxed text-gray-700 md:text-[15px]'
               components={{
                 p: (props) => <p className='mb-2 last:mb-0' {...props} />,
-                ul: (props) => <ul className='mb-2 list-disc space-y-1 pl-5' {...props} />,
-                ol: (props) => <ol className='mb-2 list-decimal space-y-1 pl-5' {...props} />,
-                li: (props) => <li className='leading-relaxed text-gray-700' {...props} />,
+                ul: (props) => (
+                  <ul className='mb-2 list-disc space-y-1 pl-5' {...props} />
+                ),
+                ol: (props) => (
+                  <ol className='mb-2 list-decimal space-y-1 pl-5' {...props} />
+                ),
+                li: (props) => (
+                  <li className='leading-relaxed text-gray-700' {...props} />
+                ),
               }}
             >
               {message.content}

@@ -1,16 +1,19 @@
 import apiClient from '@/lib/apiClient';
+
 import {
   Conversation,
   CreateConversationRequest,
-  UpdateConversationRequest,
   PaginatedResponse,
+  UpdateConversationRequest,
 } from '@/types/api';
 
 export const conversationService = {
   /**
    * Create a new conversation
    */
-  async createConversation(data: CreateConversationRequest): Promise<Conversation> {
+  async createConversation(
+    data: CreateConversationRequest
+  ): Promise<Conversation> {
     const response = await apiClient.post<Conversation>('/conversations', data);
     return response.data;
   },
@@ -18,7 +21,10 @@ export const conversationService = {
   /**
    * Get all conversations for the current user
    */
-  async getUserConversations(page = 1, limit = 20): Promise<PaginatedResponse<Conversation>> {
+  async getUserConversations(
+    page = 1,
+    limit = 20
+  ): Promise<PaginatedResponse<Conversation>> {
     const response = await apiClient.get<PaginatedResponse<Conversation>>(
       `/conversations?page=${page}&limit=${limit}`
     );
@@ -40,15 +46,22 @@ export const conversationService = {
     id: string,
     data: UpdateConversationRequest
   ): Promise<Conversation> {
-    const response = await apiClient.patch<Conversation>(`/conversations/${id}`, data);
+    const response = await apiClient.patch<Conversation>(
+      `/conversations/${id}`,
+      data
+    );
     return response.data;
   },
 
   /**
    * Advance the conversation by one agent turn
    */
-  async stepConversation(id: string): Promise<{ speaker: string | null; message: any | null }> {
-    const response = await apiClient.post(`/orchestration/conversations/${id}/step`);
+  async stepConversation(
+    id: string
+  ): Promise<{ speaker: string | null; message: any | null }> {
+    const response = await apiClient.post(
+      `/orchestration/conversations/${id}/step`
+    );
     return response.data.data;
   },
 

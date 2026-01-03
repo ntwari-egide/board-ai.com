@@ -18,6 +18,7 @@
 ### 3. API Services
 
 All services created in `src/services/`:
+
 - **authService.ts**: register, login, getCurrentUser, logout
 - **personaService.ts**: getAllPersonas, getPersonaById
 - **conversationService.ts**: create, fetch, update, delete conversations
@@ -29,6 +30,7 @@ All services created in `src/services/`:
 ### 4. Redux State Management
 
 Redux slices created in `src/store/slices/`:
+
 - **authSlice.ts**: Authentication state & actions
 - **personaSlice.ts**: Personas management & selection
 - **conversationSlice.ts**: Conversations, messages, typing indicators
@@ -43,7 +45,9 @@ Redux slices created in `src/store/slices/`:
 ### 6. Updated Components
 
 **New integrated components** created (with `.integrated.tsx` suffix):
-- **Sidebar.integrated.tsx**: 
+
+- **Sidebar.integrated.tsx**:
+
   - Shows conversations list from backend
   - Persona selector with checkboxes
   - New conversation button
@@ -51,12 +55,14 @@ Redux slices created in `src/store/slices/`:
   - User profile with logout
 
 - **ConversationView.integrated.tsx**:
+
   - Loads messages from backend
   - Displays real-time typing indicators
   - Auto-scrolls to new messages
   - Shows persona avatars with colors
 
 - **ChatInput.integrated.tsx**:
+
   - Sends messages via API
   - Triggers AI persona responses
   - File upload support
@@ -68,6 +74,7 @@ Redux slices created in `src/store/slices/`:
   - Manages conversation state
 
 **Authentication components updated**:
+
 - **login.tsx**: Uses Redux actions, auto-redirects on success
 - **signup.tsx**: Uses Redux actions, auto-login after registration
 
@@ -78,6 +85,7 @@ Redux slices created in `src/store/slices/`:
 ### Step 1: Environment Setup
 
 Create `.env.local`:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 NEXT_PUBLIC_SOCKET_URL=http://localhost:3000
@@ -104,6 +112,7 @@ mv src/components/board/Sidebar.integrated.tsx src/components/board/Sidebar.tsx
 ### Step 3: Start the Backend
 
 Make sure your backend is running:
+
 ```bash
 # In your backend directory
 npm run start:dev
@@ -126,6 +135,7 @@ Frontend will be at `http://localhost:3001` (or configured port)
 ## Complete User Flow
 
 ### 1. **User Authentication**
+
 ```
 Visit /auth/login or /auth/signup
 ↓
@@ -139,6 +149,7 @@ User redirected to /
 ```
 
 ### 2. **Starting a Conversation**
+
 ```
 Open app → BoardLayout loads
 ↓
@@ -158,6 +169,7 @@ All selected AI personas respond sequentially
 ```
 
 ### 3. **Real-time Updates**
+
 ```
 WebSocket connects automatically
 ↓
@@ -173,6 +185,7 @@ Frontend receives "round_completed" event → Round indicator updates
 ```
 
 ### 4. **Conversation Management**
+
 ```
 Sidebar shows all conversations
 ↓
@@ -197,7 +210,7 @@ All changes persist to backend
 **Conversation History**: Persist and switch between chats  
 **Typing Indicators**: See when AI is responding  
 **Error Handling**: Automatic logout on 401, user-friendly errors  
-**Analytics**: Token usage and cost tracking (service ready)  
+**Analytics**: Token usage and cost tracking (service ready)
 
 ---
 
@@ -225,6 +238,7 @@ All changes persist to backend
 See [backend.md](./backend.md) for complete API documentation.
 
 **Quick reference:**
+
 - `POST /auth/email/register` - Register
 - `POST /auth/email/login` - Login
 - `GET /auth/me` - Get current user
@@ -239,26 +253,31 @@ See [backend.md](./backend.md) for complete API documentation.
 ## Troubleshooting
 
 ### Backend not responding
+
 - Check backend is running on `http://localhost:8080`
 - Verify `.env.local` has correct URLs
 - Check CORS is enabled on backend
 
 ### WebSocket not connecting
+
 - Ensure backend WebSocket gateway is running
 - Check `NEXT_PUBLIC_SOCKET_URL` in `.env.local`
 - Look for connection errors in browser console
 
 ### 401 Unauthorized errors
+
 - Token expired → Logout and login again
 - Backend auth middleware may need configuration
 - Check JWT secret matches on backend
 
 ### Messages not sending
+
 - Verify personas are selected
 - Check network tab for API errors
 - Ensure conversation is created first
 
 ### TypeScript errors
+
 - Run `pnpm typecheck` to see all errors
 - Most types are defined in `src/types/api.ts`
 - Update types if backend response structure changed
@@ -331,6 +350,7 @@ All API endpoints are wrapped in services, state management is handled by Redux,
 Follow the steps above to activate the integration and start using the real backend.
 
 For questions or issues, refer to:
+
 - [INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md) - Detailed integration examples
 - [backend.md](./backend.md) - API documentation
 - Backend Swagger docs at `http://localhost:8080/docs`

@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
 import { BiSearch } from 'react-icons/bi';
-import { HiOutlineUserGroup, HiOutlinePencilSquare } from 'react-icons/hi2';
-import { RiRobot2Line } from 'react-icons/ri';
 import { HiMenuAlt2 } from 'react-icons/hi';
+import { HiOutlinePencilSquare, HiOutlineUserGroup } from 'react-icons/hi2';
+import { RiRobot2Line } from 'react-icons/ri';
+
 import { useAppSelector } from '@/store/hooks';
 
 interface TopBarProps {
@@ -13,7 +14,10 @@ interface TopBarProps {
 /**
  * Top navigation bar with search and action buttons
  */
-export default function TopBar({ title = 'New brainstorming', onNewChat }: TopBarProps) {
+export default function TopBar({
+  title = 'New brainstorming',
+  onNewChat,
+}: TopBarProps) {
   const { currentConversation } = useAppSelector((state) => state.conversation);
   const { personas } = useAppSelector((state) => state.persona);
 
@@ -47,7 +51,7 @@ export default function TopBar({ title = 'New brainstorming', onNewChat }: TopBa
         )}
 
         {/* Edit Icon - Mobile only */}
-        <button 
+        <button
           onClick={onNewChat}
           className='flex items-center justify-center text-gray-700 md:hidden'
         >

@@ -17,8 +17,8 @@ export default async function handler(
 
   // TODO: Implement your file upload logic here
   // This is a placeholder for file upload functionality
-  
-  res.status(200).json({ 
-    message: 'File upload endpoint - implement your logic here' 
+
+  res.status(200).json({
+    message: 'File upload endpoint - implement your logic here',
   });
 }

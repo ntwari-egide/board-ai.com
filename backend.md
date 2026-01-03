@@ -45,16 +45,16 @@ CREATE TABLE conversations (
   title VARCHAR(255) NOT NULL DEFAULT 'New brainstorming',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  
+
   -- Metadata
   status VARCHAR(50) DEFAULT 'active', -- active, archived, deleted
   consensus_reached BOOLEAN DEFAULT false,
   viability_score DECIMAL(5,2),
-  
+
   -- Performance metrics
   total_turns INTEGER DEFAULT 0,
   active_agents TEXT[], -- Array of active persona IDs
-  
+
   INDEX idx_user_conversations (user_id, updated_at DESC)
 );
 
@@ -65,18 +65,18 @@ CREATE TABLE messages (
   persona_id VARCHAR(50) NOT NULL, -- 'user', 'marketing', 'developer', etc.
   content TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW(),
-  
+
   -- Message metadata
   is_typing BOOLEAN DEFAULT false,
   is_rebuttal BOOLEAN DEFAULT false,
   is_resolution BOOLEAN DEFAULT false,
   sentiment_score DECIMAL(3,2), -- 0.0 to 1.0
-  
+
   -- AI metadata
   model_used VARCHAR(100),
   tokens_used INTEGER,
   latency_ms INTEGER,
-  
+
   INDEX idx_conversation_messages (conversation_id, created_at ASC)
 );
 
@@ -88,13 +88,13 @@ CREATE TABLE attachments (
   file_type VARCHAR(100) NOT NULL,
   file_size INTEGER NOT NULL,
   storage_url TEXT NOT NULL, -- S3/Azure URL
-  
+
   -- Vector search integration
   vector_indexed BOOLEAN DEFAULT false,
   pinecone_namespace VARCHAR(255),
-  
+
   created_at TIMESTAMP DEFAULT NOW(),
-  
+
   INDEX idx_message_attachments (message_id)
 );
 
@@ -108,7 +108,7 @@ CREATE TABLE personas (
   system_prompt TEXT NOT NULL,
   enabled BOOLEAN DEFAULT true,
   priority_order INTEGER DEFAULT 0,
-  
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -117,21 +117,21 @@ CREATE TABLE personas (
 CREATE TABLE session_analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-  
+
   -- Consensus metrics
   agreement_score DECIMAL(5,2),
   conflict_count INTEGER DEFAULT 0,
   resolution_count INTEGER DEFAULT 0,
-  
+
   -- Performance metrics
   total_tokens_used INTEGER DEFAULT 0,
   total_cost_usd DECIMAL(10,4) DEFAULT 0,
   avg_response_time_ms INTEGER,
-  
+
   -- Outcome tracking
   final_recommendation TEXT,
   key_insights JSONB, -- Structured insights from the debate
-  
+
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -144,11 +144,11 @@ CREATE TABLE session_analytics (
 ### 3.1 Authentication & User Management
 
 ```typescript
-POST   /api/auth/register          // Create new user account
-POST   /api/auth/login             // Authenticate user (returns JWT)
-POST   /api/auth/logout            // Invalidate session
-GET    /api/auth/me                // Get current user profile
-PATCH  /api/auth/me                // Update user profile
+POST / api / auth / register; // Create new user account
+POST / api / auth / login; // Authenticate user (returns JWT)
+POST / api / auth / logout; // Invalidate session
+GET / api / auth / me; // Get current user profile
+PATCH / api / auth / me; // Update user profile
 ```
 
 ### 3.2 Conversation Management
@@ -165,6 +165,7 @@ DELETE /api/conversations/:id                // Delete conversation
 ```
 
 **Response Format**:
+
 ```json
 {
   "success": true,
@@ -201,6 +202,7 @@ DELETE /api/messages/:id                     // Delete message (admin only)
 ```
 
 **Request Format (POST)**:
+
 ```json
 {
   "content": "I want to build a high-end mobile app...",
@@ -209,6 +211,7 @@ DELETE /api/messages/:id                     // Delete message (admin only)
 ```
 
 **Response Format**:
+
 ```json
 {
   "success": true,
@@ -240,6 +243,7 @@ DELETE /api/attachments/:id                  // Delete attachment
 ```
 
 **Upload Request (multipart/form-data)**:
+
 ```typescript
 FormData: {
   files: File[], // Max 5 files, 10MB each
@@ -248,6 +252,7 @@ FormData: {
 ```
 
 **Upload Response**:
+
 ```json
 {
   "success": true,
@@ -277,6 +282,7 @@ DELETE /api/personas/:id                     // Delete custom persona
 ```
 
 **Response Format**:
+
 ```json
 {
   "success": true,
@@ -303,6 +309,7 @@ GET    /api/analytics/user                   // User-level usage statistics
 ```
 
 **Analytics Response**:
+
 ```json
 {
   "success": true,
@@ -333,7 +340,7 @@ GET    /api/analytics/user                   // User-level usage statistics
 ```typescript
 // Client connects to specific conversation
 const socket = io('/conversations/:conversationId', {
-  auth: { token: 'JWT_TOKEN' }
+  auth: { token: 'JWT_TOKEN' },
 });
 
 // Namespace: /conversations/:conversationId
@@ -344,8 +351,8 @@ const socket = io('/conversations/:conversationId', {
 
 ```typescript
 // Join conversation room
-socket.emit('JOIN_CONVERSATION', { 
-  conversationId: 'uuid' 
+socket.emit('JOIN_CONVERSATION', {
+  conversationId: 'uuid',
 });
 
 // Start new agent discussion
@@ -353,25 +360,25 @@ socket.emit('START_SESSION', {
   conversationId: 'uuid',
   userMessage: 'I want to build...',
   attachments: ['file-id-1', 'file-id-2'],
-  activeAgents: ['marketing', 'developer', 'pm', 'qa'] // Optional
+  activeAgents: ['marketing', 'developer', 'pm', 'qa'], // Optional
 });
 
 // Request specific agent response
 socket.emit('REQUEST_AGENT', {
   conversationId: 'uuid',
   personaId: 'qa',
-  context: 'How do we handle...'
+  context: 'How do we handle...',
 });
 
 // Stop ongoing agent discussion
-socket.emit('STOP_SESSION', { 
-  conversationId: 'uuid' 
+socket.emit('STOP_SESSION', {
+  conversationId: 'uuid',
 });
 
 // User is typing indicator
-socket.emit('USER_TYPING', { 
-  conversationId: 'uuid', 
-  isTyping: true 
+socket.emit('USER_TYPING', {
+  conversationId: 'uuid',
+  isTyping: true,
 });
 ```
 
@@ -455,12 +462,14 @@ socket.on('ERROR', (error) => {
 **Module**: `gateway.module.ts`
 
 **Responsibilities**:
+
 - Handles WebSocket connections via Socket.IO
 - Namespace management for conversation isolation
 - JWT authentication for socket connections
 - Event routing to orchestration service
 
 **Event Pipeline**:
+
 - `subscribe('START_SESSION')`: Initializes the LangGraph state
 - `emit('AGENT_STREAM')`: Forwards LLM chunks to the specific client
 - `emit('METRIC_UPDATE')`: Pushes real-time scoring to dashboard
@@ -482,7 +491,7 @@ Deliberation Loop:
     ↓
 Marketing Agent → Evaluates market opportunity
     ↓
-Developer Agent → Assesses technical feasibility  
+Developer Agent → Assesses technical feasibility
     ↓
 PM Agent → Analyzes resource requirements
     ↓
@@ -497,6 +506,7 @@ If consensus → Generate final recommendation
 ```
 
 **Key Features**:
+
 - Dynamic agent selection based on conversation context
 - Parallel agent invocation for efficiency (configurable)
 - Maximum turn limit (15 turns) to prevent infinite loops
@@ -508,6 +518,7 @@ If consensus → Generate final recommendation
 **Module**: `tooling.module.ts`
 
 **File Processing Pipeline**:
+
 1. **Upload Handler**: Multer for multipart uploads
 2. **Parser**: Converts PDFs, DOCX, TXT to plain text
 3. **Chunking**: 512-token chunks with overlap
@@ -515,11 +526,13 @@ If consensus → Generate final recommendation
 5. **Storage**: Pinecone with conversation namespace
 
 **Search Tool**:
+
 - Agents invoke `searchDocuments(query: string)` during deliberation
 - Returns top-k relevant chunks with citations
 - Integrates with external APIs for market data
 
 **Supported File Types**:
+
 - PDF (pdf-parse)
 - DOCX (mammoth)
 - TXT, CSV, JSON
@@ -530,6 +543,7 @@ If consensus → Generate final recommendation
 **Module**: `persona.module.ts`
 
 **AgentPersona Factory**:
+
 ```typescript
 interface AgentPersona {
   id: string;
@@ -548,6 +562,7 @@ class PersonaFactory {
 ```
 
 **Default Personas**:
+
 - **Marketing** (Strategist): Market analysis, TAM calculation
 - **Developer** (Engineer): Technical feasibility, architecture
 - **PM** (Product Manager): Resource planning, roadmap
@@ -569,12 +584,13 @@ class PersonaFactory {
 4. **Vote Aggregation**: Each agent implicitly "votes" through semantic analysis
 
 **Consensus Criteria**:
+
 ```typescript
 interface ConsensusCheck {
-  agreementThreshold: number;     // >= 0.75
-  conflictResolution: boolean;    // All rebuttals resolved
-  metricStability: boolean;       // < 5% variance over 3 turns
-  minTurns: number;               // >= 5 turns required
+  agreementThreshold: number; // >= 0.75
+  conflictResolution: boolean; // All rebuttals resolved
+  metricStability: boolean; // < 5% variance over 3 turns
+  minTurns: number; // >= 5 turns required
   allAgentsParticipated: boolean; // Each active agent contributed
 }
 ```
@@ -587,15 +603,15 @@ Redis acts as the **Message Bus** and **State Store** for stateless horizontal s
 
 ### Key Patterns
 
-| Key Pattern | Data Type | Purpose | TTL |
-|------------|-----------|---------|-----|
-| `session:{id}:graph` | STRING (JSON) | Serialized LangGraph state | 24h |
-| `lock:debate:{id}` | STRING | Redlock for single agent speaking | 30s |
-| `cache:llm:{hash}` | STRING | Caches expensive reasoning | 7d |
-| `stream:{id}:buffer` | LIST | Buffers outgoing chunks | 1h |
-| `conv:{id}:metrics` | HASH | Real-time conversation metrics | 24h |
-| `user:{id}:rate` | STRING | Token bucket for rate limiting | 1m |
-| `typing:{conv}:{persona}` | STRING | Agent typing state | 10s |
+| Key Pattern               | Data Type     | Purpose                           | TTL |
+| ------------------------- | ------------- | --------------------------------- | --- |
+| `session:{id}:graph`      | STRING (JSON) | Serialized LangGraph state        | 24h |
+| `lock:debate:{id}`        | STRING        | Redlock for single agent speaking | 30s |
+| `cache:llm:{hash}`        | STRING        | Caches expensive reasoning        | 7d  |
+| `stream:{id}:buffer`      | LIST          | Buffers outgoing chunks           | 1h  |
+| `conv:{id}:metrics`       | HASH          | Real-time conversation metrics    | 24h |
+| `user:{id}:rate`          | STRING        | Token bucket for rate limiting    | 1m  |
+| `typing:{conv}:{persona}` | STRING        | Agent typing state                | 10s |
 
 ### Redis Pub/Sub Channels
 
@@ -615,11 +631,13 @@ SUBSCRIBE consensus:reached:*
 ### 7.1 Authentication
 
 **JWT Strategy**:
+
 - Access token (15 min expiry)
 - Refresh token (7 days expiry)
 - httpOnly cookies for web clients
 
 **Guards**:
+
 ```typescript
 @UseGuards(JwtAuthGuard)          // REST endpoints
 @UseGuards(WsJwtGuard)            // WebSocket connections
@@ -629,11 +647,13 @@ SUBSCRIBE consensus:reached:*
 ### 7.2 Rate Limiting
 
 **Token Bucket (Redis)**:
+
 - Limits LLM tokens per session per minute
 - Default: 50,000 tokens/minute per user
 - Prevents runaway API costs
 
 **Request Rate Limits**:
+
 - Anonymous: 10 req/min
 - Authenticated: 100 req/min
 - Premium: 500 req/min
@@ -656,6 +676,7 @@ class CreateMessageDto {
 ### 7.4 Sandbox Execution
 
 Code generation by Developer Agent runs in isolated environment:
+
 - No network access
 - Limited CPU/Memory
 - 5-second timeout
@@ -670,7 +691,7 @@ Code generation by Developer Agent runs in isolated environment:
 ```typescript
 // Fetch conversations
 const response = await fetch('/api/conversations?page=1&limit=20', {
-  headers: { 'Authorization': `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 });
 const { data, pagination } = await response.json();
 
@@ -678,13 +699,13 @@ const { data, pagination } = await response.json();
 const response = await fetch(`/api/conversations/${conversationId}/messages`, {
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify({
     content: 'I want to build...',
-    attachmentIds: ['file-1', 'file-2']
-  })
+    attachmentIds: ['file-1', 'file-2'],
+  }),
 });
 ```
 
@@ -694,7 +715,7 @@ const response = await fetch(`/api/conversations/${conversationId}/messages`, {
 import io from 'socket.io-client';
 
 const socket = io(`${API_URL}/conversations/${conversationId}`, {
-  auth: { token: localStorage.getItem('token') }
+  auth: { token: localStorage.getItem('token') },
 });
 
 // Listen for agent messages
@@ -718,7 +739,7 @@ socket.on('METRIC_UPDATE', (metrics) => {
 socket.emit('START_SESSION', {
   conversationId: conversationId,
   userMessage: message,
-  attachments: fileIds
+  attachments: fileIds,
 });
 ```
 
@@ -726,12 +747,12 @@ socket.emit('START_SESSION', {
 
 ```typescript
 const formData = new FormData();
-files.forEach(file => formData.append('files', file));
+files.forEach((file) => formData.append('files', file));
 
 const response = await fetch(`/api/conversations/${conversationId}/upload`, {
   method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` },
-  body: formData
+  headers: { Authorization: `Bearer ${token}` },
+  body: formData,
 });
 
 const { attachments } = await response.json();
@@ -742,6 +763,7 @@ const { attachments } = await response.json();
 ## 9. Implementation Checklist
 
 ### Phase 1: Core Infrastructure
+
 - [ ] Set up NestJS project with modular architecture
 - [ ] Configure Prisma ORM with PostgreSQL schema
 - [ ] Implement RedisModule for distributed locking
@@ -749,6 +771,7 @@ const { attachments } = await response.json();
 - [ ] Configure CORS and security middleware
 
 ### Phase 2: API Development
+
 - [ ] Implement user authentication endpoints
 - [ ] Build conversation CRUD operations
 - [ ] Create message management APIs
@@ -756,6 +779,7 @@ const { attachments } = await response.json();
 - [ ] Add pagination and filtering
 
 ### Phase 3: Real-Time Communication
+
 - [ ] Set up Socket.IO with namespace management
 - [ ] Implement WebSocket authentication guards
 - [ ] Build event handlers for agent communication
@@ -763,6 +787,7 @@ const { attachments } = await response.json();
 - [ ] Add typing indicators and presence
 
 ### Phase 4: AI Orchestration
+
 - [ ] Integrate LangGraph state machine
 - [ ] Build AgentPersona factory with system prompts
 - [ ] Implement consensus engine logic
@@ -770,6 +795,7 @@ const { attachments } = await response.json();
 - [ ] Add maximum turn limit (15 turns) safeguard
 
 ### Phase 5: RAG & Document Processing
+
 - [ ] Set up PineconeClient for vector search
 - [ ] Build file processing pipeline
 - [ ] Implement document chunking and embedding
@@ -777,6 +803,7 @@ const { attachments } = await response.json();
 - [ ] Add citation tracking for RAG responses
 
 ### Phase 6: Testing & Deployment
+
 - [ ] Write unit tests (80% coverage)
 - [ ] Create integration tests for APIs
 - [ ] Build E2E tests for WebSocket flows

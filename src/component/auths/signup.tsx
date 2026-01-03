@@ -7,13 +7,14 @@ import {
 import { Button, Input, message } from 'antd';
 import axios from 'axios';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { RiArrowRightLine } from 'react-icons/ri';
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { clearError, login, register } from '@/store/slices/authSlice';
 
 import api from '@/global/axios-config';
 import { encryptData } from '@/utils/encryptions';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { register, login, clearError } from '@/store/slices/authSlice';
 
 interface LoginResponseType {
   // Define this interface based on the response structure from your backend
@@ -29,8 +30,10 @@ interface LoginResponseType {
 const SignupComponent = () => {
   // Redux
   const dispatch = useAppDispatch();
-  const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
-  
+  const { loading, error, isAuthenticated } = useAppSelector(
+    (state) => state.auth
+  );
+
   // states
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -133,18 +136,20 @@ const SignupComponent = () => {
 
     try {
       // Register user
-      await dispatch(register({
-        email,
-        password,
-        firstName,
-        lastName,
-      })).unwrap();
-      
+      await dispatch(
+        register({
+          email,
+          password,
+          firstName,
+          lastName,
+        })
+      ).unwrap();
+
       // After successful registration, automatically login
       await dispatch(login({ email, password })).unwrap();
-      
+
       message.success('Registration successful!');
-      
+
       // Clear form
       setEmail('');
       setPassword('');

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState } from 'react';
 
+import ChatInput from './ChatInput';
+import ConversationView from './ConversationView';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import WelcomeMessage from './WelcomeMessage';
-import ChatInput from './ChatInput';
-import ConversationView from './ConversationView';
 
 interface BoardLayoutProps {
   userName?: string;
@@ -27,9 +27,12 @@ export default function BoardLayout({
 
   const handleSendMessage = (message: string, files: File[]) => {
     setHasStartedConversation(true);
-    
+
     // Call the exposed function from ConversationView
-    if (typeof window !== 'undefined' && (window as any).addConversationMessage) {
+    if (
+      typeof window !== 'undefined' &&
+      (window as any).addConversationMessage
+    ) {
       (window as any).addConversationMessage(message, files);
     }
   };
@@ -62,7 +65,10 @@ export default function BoardLayout({
                 {/* Fixed Input at Bottom */}
                 <div className='bg-gradient-to-t from-gray-50 via-gray-50 to-transparent px-4 pb-4 pt-6 md:px-6 md:pb-6 md:pt-8'>
                   <div className='mx-auto max-w-3xl'>
-                    <ChatInput onSendMessage={handleSendMessage} isCompact={true} />
+                    <ChatInput
+                      onSendMessage={handleSendMessage}
+                      isCompact={true}
+                    />
                   </div>
                 </div>
               </>

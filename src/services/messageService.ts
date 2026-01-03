@@ -1,5 +1,6 @@
 import apiClient from '@/lib/apiClient';
-import { Message, CreateMessageRequest } from '@/types/api';
+
+import { CreateMessageRequest, Message } from '@/types/api';
 
 export const messageService = {
   /**

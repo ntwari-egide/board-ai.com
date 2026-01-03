@@ -1,17 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { HiOutlineChatBubbleLeftRight, HiOutlineUser } from 'react-icons/hi2';
-import { LuLogOut } from 'react-icons/lu';
 import { IoTimeOutline } from 'react-icons/io5';
-import { getAllConversations, setCurrentConversationId as setStorageConversationId } from '@/lib/conversationStorage';
-import { Conversation } from '@/types/chat';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchConversations, setCurrentConversation, clearCurrentConversation } from '@/store/slices/conversationSlice';
-import { fetchPersonas, togglePersona } from '@/store/slices/personaSlice';
-import { logout } from '@/store/slices/authSlice';
-import { useRouter } from 'next/router';
+import { LuLogOut } from 'react-icons/lu';
+
+import {
+  getAllConversations,
+  setCurrentConversationId as setStorageConversationId,
+} from '@/lib/conversationStorage';
+
 import { dummyPersonas } from '@/data/dummyData';
-import { Conversation as ApiConversation, Persona as ApiPersona } from '@/types/api';
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logout } from '@/store/slices/authSlice';
+import {
+  clearCurrentConversation,
+  fetchConversations,
+  setCurrentConversation,
+} from '@/store/slices/conversationSlice';
+import { fetchPersonas, togglePersona } from '@/store/slices/personaSlice';
+
+import {
+  Conversation as ApiConversation,
+  Persona as ApiPersona,
+} from '@/types/api';
+import { Conversation } from '@/types/chat';
 
 interface SidebarProps {
   userName?: string;
@@ -23,29 +37,41 @@ interface SidebarProps {
 /**
  * Sidebar component with logo, search, and new chat button
  */
-export default function Sidebar({ userName, userAvatar, onNewChat, currentConversationId }: SidebarProps) {
+export default function Sidebar({
+  userName,
+  userAvatar,
+  onNewChat,
+  currentConversationId,
+}: SidebarProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  
+
   // Redux state
-  const { conversations: backendConversations } = useAppSelector((state) => state.conversation);
+  const { conversations: backendConversations } = useAppSelector(
+    (state) => state.conversation
+  );
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  const { personas: backendPersonas, selectedPersonas } = useAppSelector((state) => state.persona);
+  const { personas: backendPersonas, selectedPersonas } = useAppSelector(
+    (state) => state.persona
+  );
 
   // Use backend personas if available, otherwise fallback to dummy data
-  const displayPersonas = backendPersonas.length > 0 ? backendPersonas : dummyPersonas.map(p => ({
-    id: p.id,
-    name: p.name,
-    description: p.role,
-    systemPrompt: '',
-    color: p.color,
-    icon: p.avatar,
-    capabilities: [],
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }));
+  const displayPersonas =
+    backendPersonas.length > 0
+      ? backendPersonas
+      : dummyPersonas.map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: p.role,
+          systemPrompt: '',
+          color: p.color,
+          icon: p.avatar,
+          capabilities: [],
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
 
   const loadConversations = useCallback(() => {
     const allConversations = getAllConversations();
@@ -68,25 +94,35 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
     };
 
     fetchOrFallback();
-  }, [dispatch, backendPersonas.length, isAuthenticated, currentConversationId, loadConversations]);
+  }, [
+    dispatch,
+    backendPersonas.length,
+    isAuthenticated,
+    currentConversationId,
+    loadConversations,
+  ]);
 
   // Convert backend conversations to display format
   useEffect(() => {
     if (backendConversations && backendConversations.length > 0) {
-      const converted: Conversation[] = backendConversations.map((conv: ApiConversation) => ({
-        id: conv.id,
-        title: conv.title,
-        messages: [],
-        personas: conv.activePersonas || [],
-        createdAt: new Date(conv.createdAt),
-        updatedAt: new Date(conv.updatedAt),
-      }));
+      const converted: Conversation[] = backendConversations.map(
+        (conv: ApiConversation) => ({
+          id: conv.id,
+          title: conv.title,
+          messages: [],
+          personas: conv.activePersonas || [],
+          createdAt: new Date(conv.createdAt),
+          updatedAt: new Date(conv.updatedAt),
+        })
+      );
       setConversations(converted);
     }
   }, [backendConversations]);
 
   const handleConversationClick = (conversationId: string) => {
-    const conversation = backendConversations?.find((c: ApiConversation) => c.id === conversationId);
+    const conversation = backendConversations?.find(
+      (c: ApiConversation) => c.id === conversationId
+    );
     if (conversation) {
       dispatch(setCurrentConversation(conversation));
       if (typeof window !== 'undefined') {
@@ -127,7 +163,10 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
     } else if (date.toDateString() === yesterday.toDateString()) {
       return 'Yesterday';
     } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
     }
   };
 
@@ -137,7 +176,9 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
       <div className='mb-5'>
         <div className='flex items-center gap-2'>
           <div className='flex h-8 w-8 items-center justify-center rounded-md bg-black'>
-            <span className='font-urbanist text-base font-bold text-[#E8FF2B]'>B</span>
+            <span className='font-urbanist text-base font-bold text-[#E8FF2B]'>
+              B
+            </span>
           </div>
           <span className='font-urbanist text-lg font-bold text-gray-900'>
             Board
@@ -159,7 +200,7 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
 
       {/* New Chat Button */}
       <div className='mb-4'>
-        <button 
+        <button
           onClick={handleNewChat}
           className='flex w-full items-center gap-2 py-1.5 font-urbanist text-sm font-medium text-gray-700 transition-colors hover:text-gray-900'
         >
@@ -178,8 +219,10 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
         <div className='space-y-1'>
           {displayPersonas.slice(0, 4).map((persona: ApiPersona) => {
             const isSelected = selectedPersonas.includes(persona.id);
-            const dummyPersona = dummyPersonas.find(p => p.id === persona.id || p.name === persona.name);
-            
+            const dummyPersona = dummyPersonas.find(
+              (p) => p.id === persona.id || p.name === persona.name
+            );
+
             return (
               <button
                 key={persona.id}
@@ -193,11 +236,17 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
                 <div
                   className='flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold'
                   style={{
-                    backgroundColor: isSelected ? (dummyPersona?.color || persona.color || '#888') : 'transparent',
-                    color: isSelected ? 'white' : (dummyPersona?.color || persona.color || '#888'),
+                    backgroundColor: isSelected
+                      ? dummyPersona?.color || persona.color || '#888'
+                      : 'transparent',
+                    color: isSelected
+                      ? 'white'
+                      : dummyPersona?.color || persona.color || '#888',
                   }}
                 >
-                  {dummyPersona?.avatar || persona.icon || persona.name.charAt(0)}
+                  {dummyPersona?.avatar ||
+                    persona.icon ||
+                    persona.name.charAt(0)}
                 </div>
                 <span className='truncate'>{persona.name}</span>
               </button>
@@ -206,7 +255,8 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
         </div>
         {selectedPersonas.length > 0 && (
           <div className='mt-2 px-2 text-[10px] text-gray-500'>
-            {selectedPersonas.length} persona{selectedPersonas.length > 1 ? 's' : ''} selected
+            {selectedPersonas.length} persona
+            {selectedPersonas.length > 1 ? 's' : ''} selected
           </div>
         )}
       </div>
@@ -225,7 +275,9 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
               key={conv.id}
               onClick={() => handleConversationClick(conv.id)}
               className={`w-full rounded-lg px-2 py-1.5 text-left font-urbanist text-xs transition-colors hover:bg-gray-100 ${
-                currentConversationId === conv.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
+                currentConversationId === conv.id
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600'
               }`}
             >
               <div className='truncate'>{conv.title}</div>
@@ -268,9 +320,7 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
             </button>
           </div>
         ) : (
-          <div 
-            className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700'
-          >
+          <div className='flex w-full items-center justify-center gap-1.5 rounded-lg bg-gray-100 px-3 py-2 font-urbanist text-xs font-medium text-gray-700'>
             <HiOutlineUser className='h-3.5 w-3.5' />
             <span>Guest Mode</span>
           </div>

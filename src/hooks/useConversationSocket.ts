@@ -1,16 +1,18 @@
-import { useEffect, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useCallback, useEffect } from 'react';
+
 import socketService from '@/lib/socketService';
+
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  addMessage,
   addTypingAgent,
+  clearStreamingChunk,
+  finalizeStreamingMessage,
   removeTypingAgent,
   setCurrentConversation,
   setStreamingChunk,
   upsertStreamingMessage,
-  finalizeStreamingMessage,
-  clearStreamingChunk,
 } from '@/store/slices/conversationSlice';
+
 import { Message } from '@/types/api';
 
 /**
@@ -33,10 +35,12 @@ export const useConversationSocket = (conversationId: string | null) => {
       if (data.isTyping === false) {
         dispatch(removeTypingAgent(personaId));
       } else {
-        dispatch(addTypingAgent({
-          agentType: personaId,
-          agentName: data.message || personaId,
-        }));
+        dispatch(
+          addTypingAgent({
+            agentType: personaId,
+            agentName: data.message || personaId,
+          })
+        );
       }
     });
 
@@ -65,12 +69,18 @@ export const useConversationSocket = (conversationId: string | null) => {
       const personaId = data.agentType || data.personaId;
       if (!personaId) return;
       if (!data.isComplete) {
-        dispatch(addTypingAgent({
-          agentType: personaId,
-          agentName: personaId,
-        }));
-        dispatch(upsertStreamingMessage({ personaId, chunk: data.chunk || '' }));
-        dispatch(setStreamingChunk({ agentType: personaId, chunk: data.chunk || '' }));
+        dispatch(
+          addTypingAgent({
+            agentType: personaId,
+            agentName: personaId,
+          })
+        );
+        dispatch(
+          upsertStreamingMessage({ personaId, chunk: data.chunk || '' })
+        );
+        dispatch(
+          setStreamingChunk({ agentType: personaId, chunk: data.chunk || '' })
+        );
       } else {
         dispatch(removeTypingAgent(personaId));
         dispatch(clearStreamingChunk(personaId));
@@ -83,10 +93,12 @@ export const useConversationSocket = (conversationId: string | null) => {
         console.log('Session completed:', data);
         // Update conversation with final results
         if (currentConversation) {
-          dispatch(setCurrentConversation({
-            ...currentConversation,
-            status: 'COMPLETED',
-          }));
+          dispatch(
+            setCurrentConversation({
+              ...currentConversation,
+              status: 'COMPLETED',
+            })
+          );
         }
       }
     });

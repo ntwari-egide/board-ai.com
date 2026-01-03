@@ -1,4 +1,5 @@
 import apiClient from '@/lib/apiClient';
+
 import { Attachment } from '@/types/api';
 
 export const attachmentService = {
@@ -10,11 +11,15 @@ export const attachmentService = {
     formData.append('file', file);
     formData.append('messageId', messageId);
 
-    const response = await apiClient.post<Attachment>('/attachments/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await apiClient.post<Attachment>(
+      '/attachments/upload',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data;
   },
 

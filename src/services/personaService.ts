@@ -1,4 +1,5 @@
 import apiClient from '@/lib/apiClient';
+
 import { Persona } from '@/types/api';
 
 export const personaService = {

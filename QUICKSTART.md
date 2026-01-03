@@ -3,6 +3,7 @@
 ## What's Been Done
 
 Complete backend API integration with:
+
 - Authentication (login/signup with Redux)
 - Real-time WebSocket communication
 - Conversation management
@@ -20,6 +21,7 @@ cp .env.local.example .env.local
 ```
 
 Edit `.env.local`:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
@@ -28,11 +30,13 @@ NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
 ### 2. Activate Integrated Components
 
 **Option A - Automatic (Recommended)**
+
 ```bash
 ./activate-integration.sh
 ```
 
 **Option B - Manual**
+
 ```bash
 # Backup old files
 mv src/components/board/BoardLayout.tsx src/components/board/BoardLayout.old.tsx
@@ -64,12 +68,14 @@ pnpm dev
 ## What Works Now
 
 ### Authentication Flow
+
 1. Visit `/auth/login` or `/auth/signup`
 2. JWT token automatically stored
 3. Protected routes work
 4. Auto-logout on token expiration
 
 ### Conversation Flow
+
 1. Select AI personas from sidebar
 2. Type message and send
 3. Backend orchestration triggers all selected AI personas
@@ -78,6 +84,7 @@ pnpm dev
 6. All data persists to backend
 
 ### Features
+
 - Multi-persona selection
 - Real-time WebSocket updates
 - Conversation history
@@ -110,6 +117,7 @@ src/
 ## Testing
 
 Test the integration:
+
 1. Register new user
 2. Login
 3. Select personas (checkbox in sidebar)
@@ -122,18 +130,22 @@ Test the integration:
 ## Troubleshooting
 
 **Backend not responding?**
+
 - Check backend runs at `http://localhost:8080`
 - Try: `curl http://localhost:8080/api/v1/personas` (should need auth)
 
 **WebSocket not connecting?**
+
 - Check browser console for connection errors
 - Verify `NEXT_PUBLIC_SOCKET_URL` in `.env.local`
 
 **401 Errors?**
+
 - Token expired → Logout and login again
 - Check backend JWT configuration
 
 **TypeScript Errors?**
+
 ```bash
 pnpm typecheck
 ```
@@ -141,6 +153,7 @@ pnpm typecheck
 ## Next Steps
 
 Optional enhancements:
+
 - [ ] Add analytics dashboard UI
 - [ ] Implement file upload UI in ChatMessage
 - [ ] Add conversation search

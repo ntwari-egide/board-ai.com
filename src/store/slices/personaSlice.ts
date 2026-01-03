@@ -1,5 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import personaService from '@/services/personaService';
+
 import { Persona } from '@/types/api';
 
 interface PersonaState {
@@ -24,7 +26,9 @@ export const fetchPersonas = createAsyncThunk(
       const personas = await personaService.getAllPersonas();
       return personas;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch personas');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch personas'
+      );
     }
   }
 );
@@ -36,7 +40,9 @@ export const fetchPersonaById = createAsyncThunk(
       const persona = await personaService.getPersonaById(id);
       return persona;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch persona');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch persona'
+      );
     }
   }
 );
@@ -49,7 +55,7 @@ const personaSlice = createSlice({
     togglePersona: (state, action: PayloadAction<string>) => {
       const personaId = action.payload;
       const index = state.selectedPersonas.indexOf(personaId);
-      
+
       if (index > -1) {
         state.selectedPersonas.splice(index, 1);
       } else {
@@ -73,10 +79,13 @@ const personaSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPersonas.fulfilled, (state, action: PayloadAction<Persona[]>) => {
-        state.loading = false;
-        state.personas = action.payload;
-      })
+      .addCase(
+        fetchPersonas.fulfilled,
+        (state, action: PayloadAction<Persona[]>) => {
+          state.loading = false;
+          state.personas = action.payload;
+        }
+      )
       .addCase(fetchPersonas.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -88,15 +97,20 @@ const personaSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchPersonaById.fulfilled, (state, action: PayloadAction<Persona>) => {
-        state.loading = false;
-        const existingIndex = state.personas.findIndex(p => p.id === action.payload.id);
-        if (existingIndex > -1) {
-          state.personas[existingIndex] = action.payload;
-        } else {
-          state.personas.push(action.payload);
+      .addCase(
+        fetchPersonaById.fulfilled,
+        (state, action: PayloadAction<Persona>) => {
+          state.loading = false;
+          const existingIndex = state.personas.findIndex(
+            (p) => p.id === action.payload.id
+          );
+          if (existingIndex > -1) {
+            state.personas[existingIndex] = action.payload;
+          } else {
+            state.personas.push(action.payload);
+          }
         }
-      })
+      )
       .addCase(fetchPersonaById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;

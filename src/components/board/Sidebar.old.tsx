@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { HiOutlineChatBubbleLeftRight, HiOutlineUser } from 'react-icons/hi2';
-import { LuLogOut } from 'react-icons/lu';
 import { IoTimeOutline } from 'react-icons/io5';
-import { getAllConversations, setCurrentConversationId as setStorageConversationId } from '@/lib/conversationStorage';
+import { LuLogOut } from 'react-icons/lu';
+
+import {
+  getAllConversations,
+  setCurrentConversationId as setStorageConversationId,
+} from '@/lib/conversationStorage';
+
 import { Conversation } from '@/types/chat';
 
 interface SidebarProps {
@@ -16,7 +21,12 @@ interface SidebarProps {
 /**
  * Sidebar component with logo, search, and new chat button
  */
-export default function Sidebar({ userName, userAvatar, onNewChat, currentConversationId }: SidebarProps) {
+export default function Sidebar({
+  userName,
+  userAvatar,
+  onNewChat,
+  currentConversationId,
+}: SidebarProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
@@ -45,7 +55,10 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
     } else if (date.toDateString() === yesterday.toDateString()) {
       return 'Yesterday';
     } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
     }
   };
 
@@ -55,7 +68,9 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
       <div className='mb-5'>
         <div className='flex items-center gap-2'>
           <div className='flex h-8 w-8 items-center justify-center rounded-md bg-black'>
-            <span className='font-urbanist text-base font-bold text-[#E8FF2B]'>B</span>
+            <span className='font-urbanist text-base font-bold text-[#E8FF2B]'>
+              B
+            </span>
           </div>
           <span className='font-urbanist text-lg font-bold text-gray-900'>
             Board
@@ -77,7 +92,7 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
 
       {/* New Chat Button */}
       <div className='mb-4'>
-        <button 
+        <button
           onClick={onNewChat}
           className='flex w-full items-center gap-2 py-1.5 font-urbanist text-sm font-medium text-gray-700 transition-colors hover:text-gray-900'
         >
@@ -100,7 +115,9 @@ export default function Sidebar({ userName, userAvatar, onNewChat, currentConver
               key={conv.id}
               onClick={() => handleConversationClick(conv.id)}
               className={`w-full rounded-lg px-2 py-1.5 text-left font-urbanist text-xs transition-colors hover:bg-gray-100 ${
-                currentConversationId === conv.id ? 'bg-gray-100 text-gray-900' : 'text-gray-600'
+                currentConversationId === conv.id
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600'
               }`}
             >
               <div className='truncate'>{conv.title}</div>
