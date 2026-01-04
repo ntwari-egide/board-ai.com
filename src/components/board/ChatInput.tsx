@@ -19,7 +19,6 @@ import {
   processMessage,
   sendMessage,
   setCurrentConversation,
-  stepConversation,
 } from '@/store/slices/conversationSlice';
 import { fetchPersonas } from '@/store/slices/personaSlice';
 
@@ -45,7 +44,6 @@ export default function ChatInput({
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(isCompact);
   const [isDragging, setIsDragging] = useState(false);
-  const [stepping, setStepping] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const [mentionOpen, setMentionOpen] = useState(false);
@@ -249,23 +247,6 @@ export default function ChatInput({
     setIsSending(false);
   };
 
-  const handleStep = async () => {
-    if (!currentConversation?.id) {
-      antMessage.warning('Start a conversation first');
-      return;
-    }
-    try {
-      setStepping(true);
-      await dispatch(stepConversation(currentConversation.id)).unwrap();
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unable to step conversation';
-      antMessage.error(errorMessage);
-    } finally {
-      setStepping(false);
-    }
-  };
-
   return (
     <LazyMotion features={domAnimation}>
       <m.div
@@ -387,15 +368,6 @@ export default function ChatInput({
 
               {/* Submit Button */}
               <div className='flex items-center gap-2'>
-                <button
-                  type='button'
-                  onClick={handleStep}
-                  disabled={stepping || !currentConversation?.id}
-                  className='hidden h-8 items-center justify-center rounded-lg border border-gray-200 px-2 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 disabled:border-gray-200 disabled:text-gray-400 md:flex'
-                  aria-label='Advance persona turn'
-                >
-                  {stepping ? 'Stepping…' : 'Step'}
-                </button>
                 <button
                   type='submit'
                   disabled={

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import useConversationSocket from '@/hooks/useConversationSocket';
 
@@ -45,6 +45,9 @@ export default function ConversationView({
     (state) => state.persona
   );
   const personasList = Array.isArray(personas) ? personas : [];
+  const normalizedSelectedPersonas = Array.isArray(selectedPersonas)
+    ? selectedPersonas.map((p) => p.toLowerCase())
+    : [];
   const { user } = useAppSelector((state) => state.auth);
   const isWaiting =
     messagesLoading || processingMessage || typingAgents.length > 0;
@@ -71,24 +74,26 @@ export default function ConversationView({
     }
   }, [conversationId, currentConversation?.id, dispatch]);
 
-  // Convert backend messages to display format
+  // Convert backend messages to display format with fallbacks
   useEffect(() => {
-    if (backendMessages && backendMessages.length > 0) {
-      const convertedMessages: Message[] = backendMessages.map(
-        (msg: ApiMessage) => {
-          const isAgent = msg.role?.toUpperCase() === 'AGENT';
-          return {
-            id: msg.id,
-            personaId: isAgent
-              ? msg.agentType || msg.personaId || 'agent'
-              : 'user',
-            content: msg.content,
-            timestamp: new Date(msg.createdAt),
-          };
-        }
-      );
-      setMessages(convertedMessages);
-    }
+    const list = Array.isArray(backendMessages) ? backendMessages : [];
+    const convertedMessages: Message[] = list.map((msg: ApiMessage, idx) => {
+      const isAgent = msg.role?.toUpperCase() === 'AGENT';
+      const personaId = isAgent
+        ? msg.agentType || msg.personaId || 'agent'
+        : 'user';
+      const createdAt = msg.createdAt || new Date().toISOString();
+      const fallbackId = `${personaId}-${createdAt}-${idx}`;
+      return {
+        id: msg.id || fallbackId,
+        personaId,
+        content: msg.content,
+        timestamp: new Date(createdAt),
+        attachments: msg.attachments as any,
+        role: msg.role as any,
+      };
+    });
+    setMessages(convertedMessages);
   }, [backendMessages]);
 
   // Update title when conversation changes
@@ -163,11 +168,20 @@ export default function ConversationView({
             )}
           </div>
         )}
-        {messages.map((message) => {
+        {messages.map((message, idx) => {
           const normalizedId = message.personaId?.toLowerCase?.() || '';
+          const allowAllAgents = normalizedSelectedPersonas.length === 0;
           const isAllowed =
-            normalizedId === 'user' || selectedPersonas.includes(normalizedId);
+            normalizedId === 'user' ||
+            allowAllAgents ||
+            normalizedSelectedPersonas.includes(normalizedId);
           if (!isAllowed) return null;
+
+          const messageKey =
+            message.id ||
+            `${message.personaId || 'msg'}-${
+              message.timestamp?.getTime?.() || 0
+            }-${idx}`;
 
           // Find persona (or create user persona)
           const persona =
@@ -196,7 +210,7 @@ export default function ConversationView({
                 };
 
           return (
-            <ChatMessage key={message.id} message={message} persona={persona} />
+            <ChatMessage key={messageKey} message={message} persona={persona} />
           );
         })}
 

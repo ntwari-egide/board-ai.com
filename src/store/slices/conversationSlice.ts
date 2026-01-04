@@ -199,20 +199,6 @@ export const processMessage = createAsyncThunk(
   }
 );
 
-export const stepConversation = createAsyncThunk(
-  'conversation/stepConversation',
-  async (conversationId: string, { rejectWithValue }) => {
-    try {
-      const result = await conversationService.stepConversation(conversationId);
-      return result;
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Failed to step conversation'
-      );
-    }
-  }
-);
-
 export const generateSummary = createAsyncThunk(
   'conversation/generateSummary',
   async (conversationId: string, { rejectWithValue }) => {
@@ -493,25 +479,6 @@ const conversationSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // Step conversation
-    builder
-      .addCase(stepConversation.fulfilled, (state, action) => {
-        if (action.payload?.message) {
-          if (!Array.isArray(state.messages)) state.messages = [];
-          state.messages = mergeMessages(state.messages, [
-            action.payload.message as any,
-          ]);
-        }
-        if (state.currentConversation) {
-          state.currentConversation.currentSpeaker =
-            action.payload?.speaker || null;
-          state.currentConversation.turnIndex =
-            (state.currentConversation.turnIndex || 0) + 1;
-        }
-      })
-      .addCase(stepConversation.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
   },
 });
 
