@@ -226,8 +226,20 @@ export default function ChatInput({
 
       // Refresh conversation list so history shows the new/updated thread
       dispatch(fetchConversations({ limit: 50 }));
-      // Refresh messages to replace the optimistic user message with server data
-      dispatch(fetchMessages(conversationId));
+
+      // Fallbacks: only poll when socket is not connected to avoid UI jitter
+      const isSocketConnected =
+        typeof window !== 'undefined' &&
+        (window as any).socketService &&
+        typeof (window as any).socketService.getIsConnected === 'function' &&
+        (window as any).socketService.getIsConnected();
+      if (!isSocketConnected) {
+        const scheduleRefresh = (delay: number) =>
+          setTimeout(() => dispatch(fetchMessages(conversationId)), delay);
+        scheduleRefresh(1500);
+        scheduleRefresh(4000);
+        scheduleRefresh(8000);
+      }
 
       // Reset input fields but keep submitted state
       setTimeout(() => {

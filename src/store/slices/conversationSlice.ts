@@ -342,7 +342,10 @@ const conversationSlice = createSlice({
           state.loading = false;
           state.conversations.unshift(action.payload);
           state.currentConversation = action.payload;
-          state.messages = [];
+          // Preserve any optimistic user message already queued
+          if (!Array.isArray(state.messages)) {
+            state.messages = [];
+          }
         }
       )
       .addCase(createConversation.rejected, (state, action) => {
@@ -458,21 +461,8 @@ const conversationSlice = createSlice({
       })
       .addCase(processMessage.fulfilled, (state, action) => {
         state.processingMessage = false;
-        // Agent responses are added via WebSocket in real-time
-        // But we can add them here as a fallback
-        const incoming = action.payload.data;
-        if (Array.isArray(incoming)) {
-          if (!Array.isArray(state.messages)) {
-            state.messages = [];
-          }
-          state.messages = mergeMessages(state.messages, incoming as Message[]);
-        } else if (incoming) {
-          // Defensive: only push when state.messages is an array
-          if (!Array.isArray(state.messages)) {
-            state.messages = [];
-          }
-          state.messages.push(incoming as Message);
-        }
+        // Agent replies now arrive via Socket events (agent_message_received),
+        // so skip merging here to avoid a batch drop that shows all at once.
       })
       .addCase(processMessage.rejected, (state, action) => {
         state.processingMessage = false;

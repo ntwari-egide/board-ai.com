@@ -74,7 +74,7 @@ export default function BoardLayout({
 
     dispatch(fetchConversationById(routeConversationId))
       .unwrap()
-      .then((conv) => {
+      .then((conv: NonNullable<typeof currentConversation>) => {
         dispatch(setCurrentConversation(conv));
         dispatch(fetchMessages(conv.id));
         if (typeof window !== 'undefined') {

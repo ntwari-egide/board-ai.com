@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import useConversationSocket from '@/hooks/useConversationSocket';
 
@@ -51,6 +52,8 @@ export default function ConversationView({
   const { user } = useAppSelector((state) => state.auth);
   const isWaiting =
     messagesLoading || processingMessage || typingAgents.length > 0;
+
+  const activeTypingAgent = typingAgents[0];
 
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -153,7 +156,7 @@ export default function ConversationView({
           </div>
         )}
         {currentConversation?.currentSpeaker && (
-          <div className='mb-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs text-gray-700 shadow-sm'>
+          <div className='sticky top-3 z-10 mb-3 flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-xs text-gray-700 shadow-sm backdrop-blur'>
             <span className='inline-flex h-2 w-2 rounded-full bg-emerald-500' />
             <span>
               Speaking:{' '}
@@ -168,7 +171,8 @@ export default function ConversationView({
             )}
           </div>
         )}
-        {messages.map((message, idx) => {
+        <AnimatePresence initial={false}>
+          {messages.map((message, idx) => {
           const normalizedId = message.personaId?.toLowerCase?.() || '';
           const allowAllAgents = normalizedSelectedPersonas.length === 0;
           const isAllowed =
@@ -210,9 +214,39 @@ export default function ConversationView({
                 };
 
           return (
-            <ChatMessage key={messageKey} message={message} persona={persona} />
+            <motion.div
+              key={messageKey}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <ChatMessage message={message} persona={persona} />
+            </motion.div>
           );
         })}
+        </AnimatePresence>
+
+        {activeTypingAgent && (
+          <motion.div
+            key={`typing-${activeTypingAgent.agentType}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <ChatMessage
+              message={{
+                id: `typing-${activeTypingAgent.agentType}`,
+                personaId: activeTypingAgent.agentType,
+                content: '',
+                timestamp: new Date(),
+                isTyping: true,
+              }}
+              persona={getPersonaData(activeTypingAgent.agentType)}
+            />
+          </motion.div>
+        )}
 
         {/* Removed inline empty-state loader to avoid stray bubble */}
 
