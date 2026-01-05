@@ -1,62 +1,95 @@
-# Next.js + TypeScript + Tailwind CSS Boilerplate
+# Board AI Frontend
 
-A production-ready boilerplate for building modern web applications.
+Board AI is a multi-agent debate experience. This frontend (Next.js + TypeScript) connects to the Board AI API, lets users start debates with specialized personas, stream responses live, review analytics, and manage attachments.
 
-## Features
+## What you get
 
-This repository is 🔋 battery packed with:
+- Ready-to-ship Next.js 13 app with TypeScript
+- Tailwind CSS with theme tokens for Board AI styling
+- Ant Design component kit where needed
+- API client and hooks for conversations, personas, messages, and uploads
+- WebSocket client for live debate streams
+- Auth flows for email/password and social providers
+- SEO (OG tags, sitemap) and sensible defaults for production
 
-- ⚡️ Next.js 13
-- ⚛️ Ant Design
-- ⚛️ React 18
-- ✨ TypeScript
-- 💨 Tailwind CSS 3 — Configured with CSS Variables to extend the **primary** color
-- 🃏 Jest — Configured for unit testing
-- 📈 Absolute Import and Path Alias — Import components using `@/` prefix
-- 📏 ESLint — Find and fix problems in your code, also will **auto sort** your imports
-- 💖 Prettier — Format your code consistently
-- 🐶 Husky & Lint Staged — Run scripts on your staged files before they are committed
-- 🤖 Conventional Commit Lint — Make sure you & your teammates follow conventional commit
-- ⏰ Release Please — Generate your changelog by activating the `release-please` workflow
-- 👷 Github Actions — Lint your code on PR
-- 🚘 Automatic Branch and Issue Autolink — Branch will be automatically created on issue **assign**, and auto linked on PR
-- 🔥 Snippets — A collection of useful snippets
-- 👀 Default Open Graph — Awesome open graph generated using [og](https://github.com/theodorusclarence/og), fork it and deploy!
-- 🗺 Site Map — Automatically generate sitemap.xml
-- 📦 Expansion Pack — Easily install common libraries, additional components, and configs
+## Tech stack
 
-## Getting Started
+- Next.js 13, React 18, TypeScript
+- Tailwind CSS, Ant Design
+- State and data: React Query, Zustand store (see `src/store`)
+- Testing: Jest + Testing Library
+- Tooling: ESLint, Prettier, Husky, lint-staged
 
-### 1. Install dependencies
+## Prerequisites
 
-It is encouraged to use **yarn** so the husky hooks can work properly.
+- Node 18+ and pnpm (preferred) or yarn
+- Board AI API running locally or reachable remotely
+- Environment file based on `env.example`
+
+## Setup
 
 ```bash
-yarn install
+pnpm install
+cp env.example .env.local
+# edit .env.local with API base URL, WebSocket URL, auth keys
 ```
 
-### 3. Run the development server
-
-You can start the server using this command:
+## Run locally
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. You can start editing the page by modifying `src/pages/index.tsx`.
+Open http://localhost:3000.
 
-### 4. Change defaults
+## Build and start
 
-There are some things you need to change including title, urls, favicons, etc.
+```bash
+pnpm build
+pnpm start
+```
 
-Don't forget to change the package name in package.json
+## Environment variables
 
-### 5. Commit Message Convention
+Key vars you must set in `.env.local`:
 
-This starter is using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/), it is mandatory to use it to commit changes.
+- `NEXT_PUBLIC_API_BASE_URL` (REST base, e.g., http://localhost:3000/api)
+- `NEXT_PUBLIC_WS_URL` (WebSocket base, e.g., ws://localhost:3000/board)
+- `NEXT_PUBLIC_APP_URL` (site URL for OG tags)
+- Auth provider keys/secrets as needed
 
-## Expansion Pack 📦
+## Useful scripts
 
-You can easily add expansion such as React Hook Form + Components, Storybook, and more just using a single command line.
+- `pnpm lint` — lint with ESLint
+- `pnpm test` — unit tests
+- `pnpm dev` — local dev
+- `pnpm build` — production build
+- `pnpm start` — run built app
 
-Check out the [expansion pack repository](https://github.com/theodorusclarence/expansion-pack) for the commands
+## Project structure (high level)
+
+- `src/pages` — Next.js pages and routes
+- `src/components` — UI components
+- `src/features` — conversation flows, persona UI, analytics views
+- `src/services` — API clients and WebSocket helpers
+- `src/store` — client state
+- `src/styles` — Tailwind config and globals
+
+## Connecting to the API
+
+Set `NEXT_PUBLIC_API_BASE_URL` to your API (defaults to localhost). WebSockets use `NEXT_PUBLIC_WS_URL` on the `/board` namespace. Auth headers are handled in the API client; ensure your tokens are available in the browser (http-only cookies or local storage depending on your setup).
+
+## Deployment notes
+
+- For Vercel or Railway, use the same env vars as above.
+- Ensure the API is reachable from the deployed frontend (CORS allowed, correct domain).
+- Use `pnpm build` as the build command; `pnpm start` or the platform default Next.js runtime for serving.
+
+## Testing and quality
+
+- Run `pnpm test` before pushing.
+- Run `pnpm lint` to keep code style consistent.
+
+## Support
+
+If something breaks, capture steps to reproduce, browser/OS, and any network or console errors, then open an issue.
