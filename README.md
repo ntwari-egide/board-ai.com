@@ -1,29 +1,28 @@
 # Board AI Frontend
 
-Board AI is a multi-agent debate experience. This frontend (Next.js + TypeScript) connects to the Board AI API, lets users start debates with specialized personas, stream responses live, review analytics, and manage attachments.
+Board AI is a multi-agent debate app. This Next.js frontend talks to the Board AI API so users can start debates with personas, stream replies, view analytics, and manage attachments.
 
-## What you get
+## What’s included
 
-- Ready-to-ship Next.js 13 app with TypeScript
-- Tailwind CSS with theme tokens for Board AI styling
-- Ant Design component kit where needed
-- API client and hooks for conversations, personas, messages, and uploads
+- Next.js 13 + TypeScript app
+- Tailwind CSS plus occasional Ant Design components
+- API helpers and hooks for conversations, personas, messages, uploads
 - WebSocket client for live debate streams
-- Auth flows for email/password and social providers
-- SEO (OG tags, sitemap) and sensible defaults for production
+- Auth flows for email/password and Google
+- Basic SEO (OG tags, sitemap)
 
 ## Tech stack
 
 - Next.js 13, React 18, TypeScript
-- Tailwind CSS, Ant Design
-- State and data: React Query, Zustand store (see `src/store`)
+- Tailwind CSS, Ant Design where needed
+- State/data: React Query, Zustand store (see `src/store`)
 - Testing: Jest + Testing Library
 - Tooling: ESLint, Prettier, Husky, lint-staged
 
 ## Prerequisites
 
 - Node 18+ and pnpm (preferred) or yarn
-- Board AI API running locally or reachable remotely
+- Board AI API available locally or remote
 - Environment file based on `env.example`
 
 ## Setup
@@ -51,12 +50,12 @@ pnpm start
 
 ## Environment variables
 
-Key vars you must set in `.env.local`:
+Key vars for `.env.local`:
 
 - `NEXT_PUBLIC_API_BASE_URL` (REST base, e.g., http://localhost:3000/api)
 - `NEXT_PUBLIC_WS_URL` (WebSocket base, e.g., ws://localhost:3000/board)
 - `NEXT_PUBLIC_APP_URL` (site URL for OG tags)
-- Auth provider keys/secrets as needed
+- Google auth keys if you enable Google login
 
 ## Useful scripts
 
