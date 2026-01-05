@@ -99,9 +99,11 @@ export default function Seo(props: SeoProps) {
       )}
 
       {/* Favicons */}
-      {favicons.map((linkProps) => (
-        <link key={linkProps.href} {...linkProps} />
-      ))}
+      {favicons.map((linkProps) => {
+        // Key combines rel and href to avoid duplicate keys when hrefs repeat (e.g. favicon.ico)
+        const key = `${linkProps.rel}-${linkProps.href}`;
+        return <link key={key} {...linkProps} />;
+      })}
       <meta name='msapplication-TileColor' content='#ffffff' />
       <meta
         name='msapplication-config'
