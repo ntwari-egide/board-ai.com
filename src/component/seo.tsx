@@ -32,6 +32,9 @@ type SeoProps = {
   templateTitle?: string;
 } & Partial<typeof defaultMeta>;
 
+const FAVICON_VERSION = 'v2';
+const withVersion = (href: string) => `${href}?v=${FAVICON_VERSION}`;
+
 export default function Seo(props: SeoProps) {
   const router = useRouter();
   const meta = {
@@ -100,7 +103,10 @@ export default function Seo(props: SeoProps) {
         <link key={linkProps.href} {...linkProps} />
       ))}
       <meta name='msapplication-TileColor' content='#ffffff' />
-      <meta name='msapplication-config' content='/favicon/browserconfig.xml' />
+      <meta
+        name='msapplication-config'
+        content={withVersion('/favicon/browserconfig.xml')}
+      />
       <meta name='theme-color' content='#ffffff' />
     </Head>
   );
@@ -112,25 +118,26 @@ const favicons: Array<React.ComponentPropsWithoutRef<'link'>> = [
   {
     rel: 'apple-touch-icon',
     sizes: '180x180',
-    href: '/favicon/apple-touch-icon.png',
+    href: withVersion('/favicon/apple-touch-icon.png'),
   },
   {
     rel: 'icon',
     type: 'image/png',
     sizes: '32x32',
-    href: '/favicon/favicon-32x32.png',
+    href: withVersion('/favicon/favicon-32x32.png'),
   },
   {
     rel: 'icon',
     type: 'image/png',
     sizes: '16x16',
-    href: '/favicon/favicon-16x16.png',
+    href: withVersion('/favicon/favicon-16x16.png'),
   },
-  { rel: 'manifest', href: '/favicon/site.webmanifest' },
+  { rel: 'manifest', href: withVersion('/favicon/site.webmanifest') },
   {
     rel: 'mask-icon',
-    href: '/favicon/safari-pinned-tab.svg',
+    href: withVersion('/favicon/safari-pinned-tab.svg'),
     color: '#00e887',
   },
-  { rel: 'shortcut icon', href: '/favicon/favicon.ico' },
+  { rel: 'icon', href: withVersion('/favicon/favicon.ico') },
+  { rel: 'shortcut icon', href: withVersion('/favicon/favicon.ico') },
 ];
