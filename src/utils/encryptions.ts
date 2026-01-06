@@ -13,7 +13,7 @@ export const encryptData = (data: string): string => {
     const encrypted = CryptoJS.AES.encrypt(data, secretKey).toString();
     return encrypted;
   } catch (error) {
-    console.error('Encryption failed:', error);
+    console.error('Encryption failed:',   error);
     return ''; // Return an empty string if encryption fails
   }
 };

@@ -83,7 +83,7 @@ export default function ConversationView({
     const convertedMessages: Message[] = list.map((msg: ApiMessage, idx) => {
       const isAgent = msg.role?.toUpperCase() === 'AGENT';
       const personaId = isAgent
-        ? msg.agentType || msg.personaId || 'agent'
+        ? msg.agentType || (msg as any).personaId || 'agent'
         : 'user';
       const createdAt = msg.createdAt || new Date().toISOString();
       const fallbackId = `${personaId}-${createdAt}-${idx}`;
@@ -92,7 +92,7 @@ export default function ConversationView({
         personaId,
         content: msg.content,
         timestamp: new Date(createdAt),
-        attachments: msg.attachments as any,
+        attachments: (msg as any).attachments || [],
         role: msg.role as any,
       };
     });
@@ -153,22 +153,6 @@ export default function ConversationView({
               </span>
               <span className='text-xs font-semibold'>AI is responding…</span>
             </div>
-          </div>
-        )}
-        {currentConversation?.currentSpeaker && (
-          <div className='sticky top-3 z-10 mb-3 flex items-center gap-2 rounded-xl bg-white/90 px-3 py-2 text-xs text-gray-700 shadow-sm backdrop-blur'>
-            <span className='inline-flex h-2 w-2 rounded-full bg-emerald-500' />
-            <span>
-              Speaking:{' '}
-              {personasList.find(
-                (p) => p.id === currentConversation.currentSpeaker
-              )?.name || currentConversation.currentSpeaker}
-            </span>
-            {typeof currentConversation.turnIndex === 'number' && (
-              <span className='text-gray-400'>
-                • Turn {currentConversation.turnIndex + 1}
-              </span>
-            )}
           </div>
         )}
         <AnimatePresence initial={false}>

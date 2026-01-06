@@ -1,10 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { BiSearch } from 'react-icons/bi';
 import { HiMenuAlt2 } from 'react-icons/hi';
 import { HiOutlinePencilSquare, HiOutlineUserGroup } from 'react-icons/hi2';
 import { RiRobot2Line } from 'react-icons/ri';
-
-import { useAppSelector } from '@/store/hooks';
 
 interface TopBarProps {
   title?: string;
@@ -18,17 +16,6 @@ export default function TopBar({
   title = 'New brainstorming',
   onNewChat,
 }: TopBarProps) {
-  const { currentConversation } = useAppSelector((state) => state.conversation);
-  const { personas } = useAppSelector((state) => state.persona);
-
-  const activeSpeakerLabel = useMemo(() => {
-    if (!currentConversation?.currentSpeaker) return null;
-    const persona = Array.isArray(personas)
-      ? personas.find((p) => p.id === currentConversation.currentSpeaker)
-      : null;
-    return persona?.name || currentConversation.currentSpeaker;
-  }, [currentConversation?.currentSpeaker, personas]);
-
   return (
     <header className='flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 md:px-6'>
       {/* Left side - Menu icon on mobile, empty on desktop */}
@@ -43,13 +30,6 @@ export default function TopBar({
 
       {/* Right side - Actions */}
       <div className='flex items-center gap-2'>
-        {activeSpeakerLabel && (
-          <div className='hidden items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 md:flex'>
-            <span className='h-2 w-2 rounded-full bg-emerald-500' />
-            <span>Speaking: {activeSpeakerLabel}</span>
-          </div>
-        )}
-
         {/* Edit Icon - Mobile only */}
         <button
           onClick={onNewChat}
