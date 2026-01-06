@@ -184,7 +184,7 @@ const SignupComponent = () => {
             Signup to Plaxis AI
           </h1>
           <p className='md:w-[20vw] ipad-portrait:w-full inter-tight  font-normal text-[1.7vh] text-center'>
-            Unlock your career: Just upload your resume
+            Build with AI personas and keep every brainstorm in sync
           </p>
         </div>
 

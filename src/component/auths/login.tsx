@@ -154,7 +154,7 @@ const LoginComponent = () => {
             Login to Plaxis AI
           </h1>
           <p className='md:w-[20vw] ipad-portrait:w-full inter-tight  font-normal text-[1.7vh] text-center'>
-            Unlock your career: Just upload your resume
+            Join your AI teammates and pick up the conversation instantly
           </p>
         </div>
 
